@@ -25,3 +25,9 @@ This project is hardware dependent so machines with different GPUs have differen
 - opencl-catalyst or opencl-mesa
 - amdapp-sdk
 
+
+Compiling
+------
+```
+g++ main.cpp -o <output_file> -lOpenCL -lboost_regex -std=c++11
+```
