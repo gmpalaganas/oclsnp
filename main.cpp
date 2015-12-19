@@ -8,22 +8,6 @@ int main(int argc, char **argv){
     
     initCL();
     initKernels();
-
-    //float t[] = {
-        //1, 0, 0, 1, 1, 0,
-        //1, 0, 0, 1, 1, 0,
-        //1, 0, 0, 0, 0, 1,
-        //1, 0, 0, 0, 0, 0,
-        //1, 0, 0, 0, 0, 0,
-        //1, 0, 0, 0, 0, 1
-    //};
-    
-    //float g[5] = {};
-    //gpu::vectorSelectiveAdd(t,g,6,5);
-    //printArray(g,5);
-
-    //return 0;
-
     snp.loadSNPFromFile("inputs/output.bin");
     snp.printSNPContents();
 
