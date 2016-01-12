@@ -11,6 +11,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <ctime>
 #include <regex>
 #include <boost/regex.hpp>
 
@@ -36,9 +37,11 @@ inline void checkError(cl_int err, std::string msg, std::string fncName, cl_prog
 inline std::string getCLError(cl_int errorCode);
 void cleanup();
 
-void initCL();
+void initCL(int n, int m);
 
 char* loadProgramSource(std::string fileName);
+
+bool areRulesApplicable(float *spikingVector, int n);
 
 void initKernels();
 void initVectorAddKernel();
@@ -96,6 +99,17 @@ cl_kernel  snpSetStatesKernel;
 cl_program snpSetStatesProgram;
 
 //Matrix Buffers
+cl_mem clConfigBuffer;
+cl_mem clSpikingBuffer;
+cl_mem clStateBuffer;
+cl_mem clLossBuffer;
+cl_mem clGainBuffer;
+cl_mem clNetGainBuffer;
+cl_mem clRulesBuffer;
+cl_mem clDelaysBuffer;
+cl_mem clTransitionBuffer;
+cl_mem clLHSBuffer;
+
 cl_mem clBufferA;
 cl_mem clBufferB;
 cl_mem clBufferC;

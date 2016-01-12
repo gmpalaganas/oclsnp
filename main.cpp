@@ -1,18 +1,21 @@
 #include "main.h"
 
+double runtime = 0;
+
 // To be configured to accept input file name
 // and number of steps
 int main(int argc, char **argv){
 
-    int steps = 15;
-    
-    initCL();
-    initKernels();
-    snp.loadSNPFromFile("inputs/output.bin");
+
+    snp.loadSNPFromFile(argv[1]);
     snp.printSNPContents();
 
     int n = snp.ruleCount;
     int m = snp.neuronCount;
+
+
+    initCL(n,m);
+    initKernels();
 
     configVector = new float[m]();
     spikingVector = new float[n]();
@@ -51,21 +54,27 @@ int main(int argc, char **argv){
     
     for(int i = 0; i < n; i++)
         lhs[i] = snp.getRuleRegexCode(i);
-
+    
+    int step = 1;
 
     //Simulation Proper
-    for(int i = 0; i < steps; i++){
+    do{
     
-        std::cout << "------------------------------------" << std::endl;
-        std::cout << "At step " << i + 1 << ":" << std::endl;
+        std::cout << "************************************" << std::endl;
+        std::cout << "At step " << step << ":" << std::endl;
 
         gpu::snpDetermineRules(n, m, configVector, spikingVector, rules, lhs);
+
+        if(!areRulesApplicable(spikingVector,n))
+                break;
+
         gpu::snpSetStates(n, m, configVector, spikingVector, rules, delays, lossVector, stateVector, transitionVector);
         gpu::vectorSelectiveAdd(transitionVector, gainVector, n, m);
         gpu::snpComputeNetGain(n, m, stateVector, lossVector, gainVector, netGainVector);
         gpu::vectorAdd(netGainVector,configVector,configVector,m);
         gpu::snpPostCompute(n, m, rules, transitionVector);
         gpu::snpReset(n, m, lossVector, gainVector, netGainVector);
+
 
         std::cout << "CHOSEN RULES" << std::endl;
         for(int j = 0; j < n; j++){
@@ -74,20 +83,24 @@ int main(int argc, char **argv){
             }
         }
 
-        std::cout << "************************************" << std::endl;
+        std::cout << "------------------------------------" << std::endl;
 
         for(int j = 0; j < m; j++){
             std::cout << "NEURON " << j+1 << ":" << snp.neuronLabels[j] << std::endl;
             std::cout << "Spikes: " << configVector[j] << std::endl;
         }
-    }
 
-    std::cout << "Configuration after " << steps << " steps:\n";
+        step++;
+    }while(areRulesApplicable(spikingVector,n));
+
+    std::cout << "************************************" << std::endl;
+    std::cout << "Configuration after " << step - 1 << " steps:\n";
     for(int i = 0; i < m; i++){
         std::cout << "Neuron " << i << " :" << std::endl;
         std::cout << "Spikes: " << configVector[i];
         std::cout << " State: " << stateVector[i] << std::endl << std::endl;
     }
+    std::cout << "Execution time: " << runtime << std::endl;
 
     cleanup();
 
@@ -224,6 +237,17 @@ void cleanup(){
     clReleaseKernel(snpSetStatesKernel);
     clReleaseProgram(snpSetStatesProgram);
 
+    clReleaseMemObject(clConfigBuffer);
+    clReleaseMemObject(clSpikingBuffer);
+    clReleaseMemObject(clStateBuffer);
+    clReleaseMemObject(clLossBuffer);
+    clReleaseMemObject(clGainBuffer);
+    clReleaseMemObject(clNetGainBuffer);
+    clReleaseMemObject(clRulesBuffer);
+    clReleaseMemObject(clDelaysBuffer);
+    clReleaseMemObject(clTransitionBuffer);
+    clReleaseMemObject(clLHSBuffer);
+
     delete[] configVector;
     delete[] spikingVector;
     delete[] stateVector;
@@ -237,7 +261,7 @@ void cleanup(){
 
 }
 
-void initCL(){
+void initCL(int n, int m){
 
     clErr = clGetPlatformIDs(1, &clPlatform, NULL);  
     checkError(clErr, "Unable to retrieve platforms", __FUNCTION__);
@@ -251,6 +275,36 @@ void initCL(){
     clCommandQueue = clCreateCommandQueue(clContext, clDevice, 0, &clErr);
     checkError(clErr, "Unable to create command queue", __FUNCTION__);
 
+    clConfigBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clSpikingBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clStateBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+   
+    clLossBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clGainBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clNetGainBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clRulesBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, 3 * n * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clDelaysBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clTransitionBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * (m + 1) * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clLHSBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(float), NULL, &clErr); 
+    checkError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
 }
 
 char* loadProgramSource(std::string fileName){
@@ -263,6 +317,22 @@ char* loadProgramSource(std::string fileName){
     return (char *)source.c_str();
 
 }
+
+bool areRulesApplicable(float* spikingVector, int n){
+    bool retVal = false;
+
+    for(int i = 0; i < n; i++){
+
+        if(spikingVector[i] == 1){
+            retVal = true; 
+            break;
+        }
+
+    }
+
+    return retVal;
+}
+
 void initKernels(){
 
     initVectorAddKernel();
@@ -457,8 +527,12 @@ void gpu::vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vec
 
     size_t globalSize = vectorSize;
 
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorAddKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = std::clock();
+
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, vectorSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -494,8 +568,12 @@ void gpu::vectorElemMult(float *vectorA, float *vectorB, float *outputVector, in
 
     size_t globalSize = vectorSize;
 
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorElemMultKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = std::clock();
+
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, vectorSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -527,8 +605,12 @@ void gpu::vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int 
     clErr = clSetKernelArg(vectorSelectiveAddKernel,3,sizeof(cl_int),&cols);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
 
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorSelectiveAddKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = std::clock();
+
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, globalSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -541,46 +623,36 @@ void gpu::vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int 
 void gpu::snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector){
 
     size_t globalSize = m;
-
-    clBufferA = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferA", __FUNCTION__);
-    clBufferB = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferB", __FUNCTION__);
-    clBufferC = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferC", __FUNCTION__);
-    clBufferD = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferD", __FUNCTION__);
-    
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferA,CL_FALSE,0, m * sizeof(float), stateVector, 0, NULL, NULL);
+   
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clStateBuffer,CL_FALSE,0, m * sizeof(float), stateVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer A", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferB,CL_FALSE,0,  m * sizeof(float), lossVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clLossBuffer,CL_FALSE,0,  m * sizeof(float), lossVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer B", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferC,CL_FALSE,0, m * sizeof(float), gainVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clGainBuffer,CL_FALSE,0, m * sizeof(float), gainVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer C", __FUNCTION__);
 
     clErr = clSetKernelArg(snpComputeNetGainKernel,0,sizeof(cl_int),&n);
     checkError(clErr, "Unable to set kernel param 0", __FUNCTION__);
     clErr = clSetKernelArg(snpComputeNetGainKernel,1,sizeof(cl_int),&m);
     checkError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpComputeNetGainKernel,2,sizeof(cl_mem),&clBufferA);
+    clErr = clSetKernelArg(snpComputeNetGainKernel,2,sizeof(cl_mem),&clStateBuffer);
     checkError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpComputeNetGainKernel,3,sizeof(cl_mem),&clBufferB);
+    clErr = clSetKernelArg(snpComputeNetGainKernel,3,sizeof(cl_mem),&clLossBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpComputeNetGainKernel,4,sizeof(cl_mem),&clBufferC);
+    clErr = clSetKernelArg(snpComputeNetGainKernel,4,sizeof(cl_mem),&clGainBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpComputeNetGainKernel,5,sizeof(cl_mem),&clBufferD);
+    clErr = clSetKernelArg(snpComputeNetGainKernel,5,sizeof(cl_mem),&clNetGainBuffer);
     checkError(clErr, "Unable to set kernel param 5", __FUNCTION__);
 
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpComputeNetGainKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = clock();
 
-    clEnqueueReadBuffer(clCommandQueue, clBufferD, CL_TRUE, 0, m * sizeof(float), netGainVector, 0, NULL, NULL); 
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
+
+    clEnqueueReadBuffer(clCommandQueue, clNetGainBuffer, CL_TRUE, 0, m * sizeof(float), netGainVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
-
-    clReleaseMemObject(clBufferA);
-    clReleaseMemObject(clBufferB);
-    clReleaseMemObject(clBufferC);
-    clReleaseMemObject(clBufferD);
 
 }
 
@@ -589,45 +661,35 @@ void gpu::snpComputeNetGain(int n, int m, float *stateVector, float *lossVector,
 void gpu::snpDetermineRules(int n, int m,  float *configVector, float *spikingVector, float *rules, float *lhs){
     size_t globalSize = n;
     
-    clBufferA = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferA", __FUNCTION__);
-    clBufferB = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferB", __FUNCTION__);
-    clBufferC = clCreateBuffer(clContext, CL_MEM_READ_ONLY, 3 * n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferC", __FUNCTION__);
-    clBufferD = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferD", __FUNCTION__);
-    
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferA,CL_FALSE,0, m * sizeof(float), configVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clConfigBuffer,CL_FALSE,0, m * sizeof(float), configVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer A", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferC,CL_FALSE,0,3 * n * sizeof(float), rules, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clRulesBuffer,CL_FALSE,0,3 * n * sizeof(float), rules, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer C", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferD,CL_FALSE,0,n * sizeof(float), lhs, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clLHSBuffer,CL_FALSE,0,n * sizeof(float), lhs, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer D", __FUNCTION__);
 
     clErr = clSetKernelArg(snpDetermineRulesKernel,0,sizeof(cl_int),&n);
     checkError(clErr, "Unable to set kernel param 0", __FUNCTION__);
     clErr = clSetKernelArg(snpDetermineRulesKernel,1,sizeof(cl_int),&m);
     checkError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clBufferA);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clConfigBuffer);
     checkError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,3,sizeof(cl_mem),&clBufferB);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,3,sizeof(cl_mem),&clSpikingBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,4,sizeof(cl_mem),&clBufferC);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,4,sizeof(cl_mem),&clRulesBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,5,sizeof(cl_mem),&clBufferD);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,5,sizeof(cl_mem),&clLHSBuffer);
     checkError(clErr, "Unable to set kernel param 5", __FUNCTION__);
 
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpDetermineRulesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = clock();
 
-    clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
+
+    clEnqueueReadBuffer(clCommandQueue, clSpikingBuffer, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
-
-    clReleaseMemObject(clBufferA);
-    clReleaseMemObject(clBufferB);
-    clReleaseMemObject(clBufferC);
-    clReleaseMemObject(clBufferD);
 
 }
 
@@ -635,35 +697,31 @@ void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
 
     size_t globalSize = n;
 
-    clBufferA = clCreateBuffer(clContext, CL_MEM_READ_WRITE, globalSize * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferA", __FUNCTION__);
-    clBufferB = clCreateBuffer(clContext, CL_MEM_READ_WRITE, n * (m + 1) * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferB", __FUNCTION__);
-    
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferA,CL_FALSE,0, globalSize * sizeof(float), rules, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clRulesBuffer,CL_FALSE,0, 3 * n * sizeof(float), rules, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer A", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferB,CL_FALSE,0, n * ( m + 1) * sizeof(float), transitionVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clTransitionBuffer,CL_FALSE,0, n * ( m + 1) * sizeof(float), transitionVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer B", __FUNCTION__);
 
     clErr = clSetKernelArg(snpPostComputeKernel,0,sizeof(cl_int),&n);
     checkError(clErr, "Unable to set kernel param 0", __FUNCTION__);
     clErr = clSetKernelArg(snpPostComputeKernel,1,sizeof(cl_int),&m);
     checkError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpPostComputeKernel,2,sizeof(cl_mem),&clBufferA);
+    clErr = clSetKernelArg(snpPostComputeKernel,2,sizeof(cl_mem),&clRulesBuffer);
     checkError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpPostComputeKernel,3,sizeof(cl_mem),&clBufferB);
+    clErr = clSetKernelArg(snpPostComputeKernel,3,sizeof(cl_mem),&clTransitionBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
 
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpPostComputeKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = clock();
 
-    clEnqueueReadBuffer(clCommandQueue, clBufferA, CL_TRUE, 0, globalSize * sizeof(float), rules, 0, NULL, NULL); 
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
+
+    clEnqueueReadBuffer(clCommandQueue, clRulesBuffer, CL_TRUE, 0, n * 3 * sizeof(float), rules, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, n * (m + 1) * sizeof(float), transitionVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clTransitionBuffer, CL_TRUE, 0, n * (m + 1) * sizeof(float), transitionVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer B", __FUNCTION__);
-
-    clReleaseMemObject(clBufferA);
-    clReleaseMemObject(clBufferB);
 
 }
 
@@ -672,37 +730,30 @@ void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *n
 
     size_t globalSize = m;
 
-    clBufferA = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, globalSize * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferA", __FUNCTION__);
-    clBufferB = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, globalSize * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferB", __FUNCTION__);
-    clBufferC = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, globalSize * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferC", __FUNCTION__);
-
     clErr = clSetKernelArg(snpResetKernel,0,sizeof(cl_int),&n);
     checkError(clErr, "Unable to set kernel param 0", __FUNCTION__);
     clErr = clSetKernelArg(snpResetKernel,1,sizeof(cl_int),&m);
     checkError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpResetKernel,2,sizeof(cl_mem),&clBufferA);
+    clErr = clSetKernelArg(snpResetKernel,2,sizeof(cl_mem),&clLossBuffer);
     checkError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpResetKernel,3,sizeof(cl_mem),&clBufferB);
+    clErr = clSetKernelArg(snpResetKernel,3,sizeof(cl_mem),&clGainBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpResetKernel,4,sizeof(cl_mem),&clBufferC);
+    clErr = clSetKernelArg(snpResetKernel,4,sizeof(cl_mem),&clNetGainBuffer);
     checkError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpResetKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = clock();
 
-    clEnqueueReadBuffer(clCommandQueue, clBufferA, CL_TRUE, 0, globalSize * sizeof(float), lossVector, 0, NULL, NULL); 
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
+
+    clEnqueueReadBuffer(clCommandQueue, clLossBuffer, CL_TRUE, 0, globalSize * sizeof(float), lossVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, globalSize * sizeof(float), gainVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clGainBuffer, CL_TRUE, 0, globalSize * sizeof(float), gainVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer B", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, globalSize * sizeof(float), netGainVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clNetGainBuffer, CL_TRUE, 0, globalSize * sizeof(float), netGainVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer C", __FUNCTION__);
-
-    clReleaseMemObject(clBufferA);
-    clReleaseMemObject(clBufferB);
-    clReleaseMemObject(clBufferC);
 
 }
 
@@ -712,78 +763,58 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     
     size_t globalSize = n;
 
-    clBufferA = clCreateBuffer(clContext, CL_MEM_READ_WRITE, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferA", __FUNCTION__);
-    clBufferB = clCreateBuffer(clContext, CL_MEM_READ_WRITE, n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferB", __FUNCTION__);
-    clBufferC = clCreateBuffer(clContext, CL_MEM_READ_WRITE, 3 * n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferC", __FUNCTION__);
-    clBufferD = clCreateBuffer(clContext, CL_MEM_WRITE_ONLY, n * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferD", __FUNCTION__);
-    clBufferE = clCreateBuffer(clContext, CL_MEM_READ_WRITE, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferE", __FUNCTION__);
-    clBufferF = clCreateBuffer(clContext, CL_MEM_READ_WRITE, m * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferF", __FUNCTION__);
-    clBufferG = clCreateBuffer(clContext, CL_MEM_READ_WRITE, n * (m +1) * sizeof(float), NULL, &clErr); 
-    checkError(clErr, "Unable to create clBufferG", __FUNCTION__);
-
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferA,CL_FALSE,0, m * sizeof(float), configVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clConfigBuffer,CL_FALSE,0, m * sizeof(float), configVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer A", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferB,CL_FALSE,0, n * sizeof(float), spikingVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clSpikingBuffer,CL_FALSE,0, n * sizeof(float), spikingVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer B", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferC,CL_FALSE,0, 3 * n * sizeof(float), rules, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clRulesBuffer,CL_FALSE,0, 3 * n * sizeof(float), rules, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer C", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferD,CL_FALSE,0, n * sizeof(float), delays, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clDelaysBuffer,CL_FALSE,0, n * sizeof(float), delays, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer D", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferE,CL_FALSE,0, m * sizeof(float), lossVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clLossBuffer,CL_FALSE,0, m * sizeof(float), lossVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer E", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferF,CL_FALSE,0, m * sizeof(float), stateVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clStateBuffer,CL_FALSE,0, m * sizeof(float), stateVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer F", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clBufferG,CL_FALSE,0, n * (1 + m) * sizeof(float), transitionVector, 0, NULL, NULL);
+    clErr = clEnqueueWriteBuffer(clCommandQueue,clTransitionBuffer,CL_FALSE,0, n * (1 + m) * sizeof(float), transitionVector, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue write clBuffer G", __FUNCTION__);
 
     clErr = clSetKernelArg(snpSetStatesKernel,0,sizeof(cl_int),&n);
     checkError(clErr, "Unable to set kernel param 0", __FUNCTION__);
     clErr = clSetKernelArg(snpSetStatesKernel,1,sizeof(cl_int),&m);
     checkError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,2,sizeof(cl_mem),&clBufferA);
+    clErr = clSetKernelArg(snpSetStatesKernel,2,sizeof(cl_mem),&clConfigBuffer);
     checkError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,3,sizeof(cl_mem),&clBufferB);
+    clErr = clSetKernelArg(snpSetStatesKernel,3,sizeof(cl_mem),&clSpikingBuffer);
     checkError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,4,sizeof(cl_mem),&clBufferC);
+    clErr = clSetKernelArg(snpSetStatesKernel,4,sizeof(cl_mem),&clRulesBuffer);
     checkError(clErr, "Unable to set kernel param 4", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,5,sizeof(cl_mem),&clBufferD);
+    clErr = clSetKernelArg(snpSetStatesKernel,5,sizeof(cl_mem),&clDelaysBuffer);
     checkError(clErr, "Unable to set kernel param 5", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,6,sizeof(cl_mem),&clBufferE);
+    clErr = clSetKernelArg(snpSetStatesKernel,6,sizeof(cl_mem),&clLossBuffer);
     checkError(clErr, "Unable to set kernel param 6", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,7,sizeof(cl_mem),&clBufferF);
+    clErr = clSetKernelArg(snpSetStatesKernel,7,sizeof(cl_mem),&clStateBuffer);
     checkError(clErr, "Unable to set kernel param 7", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,8,sizeof(cl_mem),&clBufferG);
+    clErr = clSetKernelArg(snpSetStatesKernel,8,sizeof(cl_mem),&clTransitionBuffer);
     checkError(clErr, "Unable to set kernel param 8", __FUNCTION__);
 
-
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpSetStatesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkError(clErr, "Unable to enqueue kernel", __FUNCTION__);
+    std::clock_t end = clock();
 
-    clEnqueueReadBuffer(clCommandQueue, clBufferA, CL_TRUE, 0, m * sizeof(float), configVector, 0, NULL, NULL); 
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
+
+    clEnqueueReadBuffer(clCommandQueue, clConfigBuffer, CL_TRUE, 0, m * sizeof(float), configVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clSpikingBuffer, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer B", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, m * sizeof(float), rules, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clRulesBuffer, CL_TRUE, 0, m * sizeof(float), rules, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer C", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferE, CL_TRUE, 0, m * sizeof(float), lossVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clLossBuffer, CL_TRUE, 0, m * sizeof(float), lossVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer E", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferF, CL_TRUE, 0, m * sizeof(float), stateVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clStateBuffer, CL_TRUE, 0, m * sizeof(float), stateVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer F", __FUNCTION__);
-    clEnqueueReadBuffer(clCommandQueue, clBufferG, CL_TRUE, 0, (m + 1) * n  * sizeof(float), transitionVector, 0, NULL, NULL); 
+    clEnqueueReadBuffer(clCommandQueue, clTransitionBuffer, CL_TRUE, 0, (m + 1) * n  * sizeof(float), transitionVector, 0, NULL, NULL); 
     checkError(clErr, "Unable to enqueue read clBuffer G", __FUNCTION__);
-
-    clReleaseMemObject(clBufferA);
-    clReleaseMemObject(clBufferB);
-    clReleaseMemObject(clBufferC);
-    clReleaseMemObject(clBufferD);
-    clReleaseMemObject(clBufferE);
-    clReleaseMemObject(clBufferF);
-    clReleaseMemObject(clBufferG);
 
 }
