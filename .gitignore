@@ -1,2 +1,4 @@
 test
 *.log.txt
+test_automation.py
+ocl_test_output.txt
