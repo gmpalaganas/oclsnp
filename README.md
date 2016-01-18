@@ -28,6 +28,21 @@ This project is hardware dependent so machines with different GPUs have differen
 
 Compiling
 ------
+For the parallel implementation
+
 ```
 g++ main.cpp -o <output_file> -lOpenCL -lboost_regex -std=c++11
+```
+
+For the linear implementation
+
+```
+g++ main_linear.cpp -o <output_file> -lboost_regex -std=c++11
+```
+
+Running
+------
+On both implementations
+```
+./<output_file_from_compilation> <input_binary>
 ```
