@@ -26,7 +26,7 @@ namespace snp_utils{
         file.read(reinterpret_cast<char *>(intBuffer),sizeof(int));
     }
 
-void readChar(std::ifstream &file, unsigned char *charBuffer){
+    void readChar(std::ifstream &file, unsigned char *charBuffer){
         file.read(reinterpret_cast<char *>(charBuffer),sizeof(char));
     }
 }
