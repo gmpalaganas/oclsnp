@@ -1,3 +1,8 @@
+/*
+ * SNP class containing information
+ * of the SNP loaded from the binary file
+ */
+
 #include "regex_tree.cpp" 
 #include "utils.cpp"
 
@@ -37,6 +42,7 @@ class SNP{
 SNP::SNP(){
     regexTree::construct_tree(tree);
 }
+
 SNP::~SNP(){
     delete[] initConfig;
     delete[] inputSpikeTrainSteps;
@@ -69,15 +75,15 @@ void SNP::loadSNPFromFile(std::string fileName){
 
     //Read Sub-header
     snp_utils::readInt(input,&intBuffer);
-    ruleCount = snp_utils::smallToBigEndian(intBuffer);
+    ruleCount = snp_utils::reverseEndianess(intBuffer);
 
     snp_utils::readInt(input,&intBuffer);
-    neuronCount = snp_utils::smallToBigEndian(intBuffer);
+    neuronCount = snp_utils::reverseEndianess(intBuffer);
 
     initConfig = new int[neuronCount];
     for(int i = 0; i < neuronCount; i++){
         snp_utils::readInt(input, &intBuffer);
-        initConfig[i] = snp_utils::smallToBigEndian(intBuffer);
+        initConfig[i] = snp_utils::reverseEndianess(intBuffer);
     }
 
     snp_utils::readInt(input, &intBuffer);
@@ -90,9 +96,9 @@ void SNP::loadSNPFromFile(std::string fileName){
 
     for(int i = 0; i < inputSpikeTrainLen; i++){
         snp_utils::readInt(input, &intBuffer);
-        inputSpikeTrainSteps[i] = snp_utils::smallToBigEndian(intBuffer);
+        inputSpikeTrainSteps[i] = snp_utils::reverseEndianess(intBuffer);
         snp_utils::readInt(input, &intBuffer);
-        inputSpikeTrainSpikes[i] = snp_utils::smallToBigEndian(intBuffer);
+        inputSpikeTrainSpikes[i] = snp_utils::reverseEndianess(intBuffer);
  
         int maxStep = inputSpikeTrainSteps[0];
         inputSpikeTrain = new int[maxStep];
@@ -103,13 +109,12 @@ void SNP::loadSNPFromFile(std::string fileName){
         }
     }
 
-
-
     ruleIds = new int[ruleCount];
-    
+   
+    //Read Rules
     for(int i = 0; i < ruleCount; i++){
         snp_utils::readInt(input, &intBuffer);
-        ruleIds[i] = snp_utils::smallToBigEndian(intBuffer);
+        ruleIds[i] = snp_utils::reverseEndianess(intBuffer);
     }
 
     ruleRegexs = new std::string[ruleCount];
@@ -120,7 +125,7 @@ void SNP::loadSNPFromFile(std::string fileName){
     for(int i = 0; i < ruleCount; i++){
         std::string decoded;
         snp_utils::readInt(input, &intBuffer);
-        int len = snp_utils::smallToBigEndian(intBuffer);
+        int len = snp_utils::reverseEndianess(intBuffer);
         int nBytes = (int)(ceil((double)len/8));
         if(nBytes == 0){
             input.ignore(1);
@@ -140,25 +145,27 @@ void SNP::loadSNPFromFile(std::string fileName){
         snp_utils::readInt(input, &intBuffer);
         
         ruleRegexs[i] = decoded;
-        ruleConsumedSpikes[i] = snp_utils::smallToBigEndian(intBuffer);
+        ruleConsumedSpikes[i] = snp_utils::reverseEndianess(intBuffer);
     }
 
     for(int i = 0; i < ruleCount; i++){
         snp_utils::readInt(input, &intBuffer);
-        ruleProducedSpikes[i] = snp_utils::smallToBigEndian(intBuffer);
+        ruleProducedSpikes[i] = snp_utils::reverseEndianess(intBuffer);
         snp_utils::readInt(input, &intBuffer);
-        ruleDelays[i] = snp_utils::smallToBigEndian(intBuffer);
+        ruleDelays[i] = snp_utils::reverseEndianess(intBuffer);
     }
 
+    //Read neuron Labels
     neuronLabels = new std::string[neuronCount];
 
     for(int i = 0; i < neuronCount; i++){
         snp_utils::readInt(input, &intBuffer);
-        int labelLen = snp_utils::smallToBigEndian(intBuffer);
+        int labelLen = snp_utils::reverseEndianess(intBuffer);
         for(int j = 0; j < labelLen; j++)
             neuronLabels[i] += input.get();
     }
-
+    
+    //Read synapses as graph adjacency matrix
     int matrixSize = (neuronCount + 1) * (neuronCount + 1);
 
     int nBytes = (int)(ceil((double)matrixSize / 8));

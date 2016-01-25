@@ -1,3 +1,7 @@
+/*
+ * Based on Huffman Tree
+ * Used to decode encoded regex in binary file
+ */
 struct node{
     char value;
     node *left;

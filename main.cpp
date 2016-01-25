@@ -6,6 +6,11 @@ double runtime = 0;
 // and number of steps
 int main(int argc, char **argv){
 
+    if(argc != 2){
+        std::cout << "Usage: <compiled_file> <input_binary_file>" << std::endl;
+        std::cout << "I.e ./test inputs/2input_sort.bin" << std::endl;
+        exit(1);
+    }
 
     snp.loadSNPFromFile(argv[1]);
     snp.printSNPContents();
@@ -96,7 +101,7 @@ int main(int argc, char **argv){
     std::cout << "************************************" << std::endl;
     std::cout << "Configuration after " << step - 1 << " steps:\n";
     for(int i = 0; i < m; i++){
-        std::cout << "Neuron " << i << " :" << std::endl;
+        std::cout << "NEURON " << i+1 << ":" << snp.neuronLabels[i] << std::endl;
         std::cout << "Spikes: " << configVector[i];
         std::cout << " State: " << stateVector[i] << std::endl << std::endl;
     }
@@ -108,6 +113,7 @@ int main(int argc, char **argv){
 
 }
 
+//Check for errors, if errors were detected, cleanup
 inline void checkError(cl_int err, std::string msg, std::string fncName){
     if(err != CL_SUCCESS){
         std::cerr << "Error in " << fncName << "(): " << msg <<std::endl;
@@ -120,6 +126,7 @@ inline void checkError(cl_int err, std::string msg, std::string fncName){
 }
 
 
+//Check for OpenCL build errors
 inline void checkError(cl_int err, std::string msg, std::string fncName, cl_program program){
 
     if (err == CL_BUILD_PROGRAM_FAILURE) {
@@ -140,6 +147,7 @@ inline void checkError(cl_int err, std::string msg, std::string fncName, cl_prog
     checkError(err,msg,fncName);
 }
 
+//Display corresponding OpenCL error based on error code
 inline std::string getCLError(cl_int err){
 
     switch(err){
@@ -214,6 +222,7 @@ inline std::string getCLError(cl_int err){
     }
 }
 
+//Release OpenCL variables and delete dynamically allocated variables
 void cleanup(){
     std::cout << "Goodbye" << std::endl;
     clReleaseCommandQueue(clCommandQueue);
@@ -261,6 +270,7 @@ void cleanup(){
 
 }
 
+//Initialize OpenCL variables i.e. Platform IDs and Device IDs
 void initCL(int n, int m){
 
     clErr = clGetPlatformIDs(1, &clPlatform, NULL);  
@@ -307,6 +317,8 @@ void initCL(int n, int m){
 
 }
 
+//Load OpenCL Program for source (.cl file)
+//Note: Currently not working
 char* loadProgramSource(std::string fileName){
 
     std::ifstream file(fileName);
@@ -318,6 +330,7 @@ char* loadProgramSource(std::string fileName){
 
 }
 
+//Check if there still are applicable rules
 bool areRulesApplicable(float* spikingVector, int n){
     bool retVal = false;
 
@@ -333,6 +346,7 @@ bool areRulesApplicable(float* spikingVector, int n){
     return retVal;
 }
 
+//Init OpenCL Kernels
 void initKernels(){
 
     initVectorAddKernel();
@@ -346,6 +360,8 @@ void initKernels(){
     initSNPSetStatesKernel();
 
 }
+
+/*===OpenCL Kernel Initializations===*/
 
 void initVectorAddKernel(){
 
@@ -501,6 +517,8 @@ void initSNPSetStatesKernel(){
     checkError(clErr, "Unable to create kernel", __FUNCTION__);
    
 }
+
+/*===End OpenCL Kernel Initializations===*/
 
 void gpu::vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vectorSize){
 

@@ -1,5 +1,6 @@
 namespace snp_utils{
-    int smallToBigEndian(int smallEndian){
+    //Reverse the endianess of an integer
+    int reverseEndianess(int smallEndian){
         int bigEndian;
 
         unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
@@ -10,7 +11,9 @@ namespace snp_utils{
 
         return bigEndian;
     }
-    unsigned char smallToBigEndian(unsigned char smallEndian){
+
+    //Reverse the endianess of a character
+    unsigned char reverseEndianess(unsigned char smallEndian){
         unsigned char bigEndian;
 
         unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
