@@ -60,13 +60,13 @@ int main(int argc, char **argv){
     //Simulation Proper
     do{
     
-        std::cout << "************************************" << std::endl;
-        std::cout << "At step " << step << ":" << std::endl;
-
         gpu::snpDetermineRules(n, m, configVector, spikingVector, rules, lhs);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
+
+        std::cout << "************************************" << std::endl;
+        std::cout << "At step " << step << ":" << std::endl;
 
         gpu::snpSetStates(n, m, configVector, spikingVector, rules, delays, lossVector, stateVector, transitionVector);
         gpu::vectorSelectiveAdd(transitionVector, gainVector, n, m);
