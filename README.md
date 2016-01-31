@@ -17,8 +17,7 @@ This project is hardware dependent so machines with different GPUs have differen
 
 ### MACHINES WITH NVIDIA CARD
 - nVidia drivers for the card in your machine
-- opencl-nvidia (Needed for execution)
-- cuda (Note: Nvidia implementation only currently supports OpenCL 1.1)
+- opencl-nvidia (Needed for execution) - cuda (Note: Nvidia implementation only currently supports OpenCL 1.1)
 
 ### MACHINES WITH ATI CARD
 - ATI drivers for the card in your machine
@@ -31,18 +30,24 @@ Compiling
 For the parallel implementation
 
 ```
-g++ main.cpp -o <output_file> -lOpenCL -lboost_regex -std=c++11
+g++ src/main.cpp -o <output_file> -lOpenCL -lboost_regex -std=c++11
 ```
 
 For the linear implementation
 
 ```
-g++ main_linear.cpp -o <output_file> -lboost_regex -std=c++11
+g++ src/main_linear.cpp -o <output_file> -lboost_regex -std=c++11
 ```
 
 Running
 ------
-On both implementations
+For parallel implementation 
+
+```
+./<output_file_from_compilation> <input_binary>  <path_to_kernels_dir>
+```
+
+For linear implementation
 ```
 ./<output_file_from_compilation> <input_binary>
 ```
