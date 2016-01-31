@@ -10,6 +10,7 @@
 #include <ctime>
 
 #include <CL/cl.h>
+#include <boost/filesystem.hpp>
 
 #include "snp/snp.hpp"
 #include "utils/array.hpp"

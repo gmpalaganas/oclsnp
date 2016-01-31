@@ -3,17 +3,19 @@
 double runtime = 0;
 std::string kernelsPath;
 
+namespace fs = boost::filesystem;
+
 // To be configured to accept input file name
 // and number of steps
 int main(int argc, char **argv){
 
-    if(argc != 3){
-        std::cout << "Usage: <compiled_file> <input_binary_file> <path_to_kernels>" << std::endl;
-        std::cout << "I.e ./test inputs/2input_sort.bin" << std::endl;
+    if(argc != 2){
+        std::cout << "Usage: ./oclsnp <input_binary_file>" << std::endl;
+        std::cout << "I.e ./oclsnp inputs/2input_sort.bin" << std::endl;
         exit(1);
     }
 
-    kernelsPath = argv[2];
+    kernelsPath =  "kernels/";
 
     snp.loadSNPFromFile(argv[1]);
     snp.printSNPContents();
@@ -370,7 +372,6 @@ void initVectorAddKernel(){
 
     //char *src = loadProgramSource(VECTOR_ADD_SRC);
 
-    std::cout << kernelsPath << VECTOR_ADD_SRC << std::endl;
     std::ifstream file(kernelsPath + VECTOR_ADD_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
