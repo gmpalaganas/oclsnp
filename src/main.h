@@ -1,24 +1,18 @@
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include <cstdio>
 #include <cstdlib>
-#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <sstream>
-#include <bitset>
-#include <vector>
 #include <iterator>
 #include <algorithm>
 #include <ctime>
-#include <regex>
-#include <boost/regex.hpp>
 
 #include <CL/cl.h>
 
-#include "snp/snp.cpp"
-#include "utils/array.cpp"
+#include "snp/snp.hpp"
+#include "utils/array.hpp"
 
 #define MAX_SNP_STRING_LEN 255
 

@@ -1,35 +1,35 @@
-namespace snp_utils{
-    //Reverse the endianess of an integer
-    int reverseEndianess(int smallEndian){
-        int bigEndian;
+#include "utils.hpp"
 
-        unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
-        unsigned char *smallEndianBytes = (unsigned char *)&smallEndian;
+//Reverse the endianess of an integer
+int snp_utils::reverseEndianess(int smallEndian){
+    int bigEndian;
 
-        for(int i = 0; i < sizeof(int); i++)
-            bigEndianBytes[i] = smallEndianBytes[sizeof(int) - i - 1];
+    unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
+    unsigned char *smallEndianBytes = (unsigned char *)&smallEndian;
 
-        return bigEndian;
-    }
+    for(int i = 0; i < sizeof(int); i++)
+        bigEndianBytes[i] = smallEndianBytes[sizeof(int) - i - 1];
 
-    //Reverse the endianess of a character
-    unsigned char reverseEndianess(unsigned char smallEndian){
-        unsigned char bigEndian;
+    return bigEndian;
+}
 
-        unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
-        unsigned char *smallEndianBytes = (unsigned char *)&smallEndian;
+//Reverse the endianess of a character
+unsigned char snp_utils::reverseEndianess(unsigned char smallEndian){
+    unsigned char bigEndian;
 
-        for(int i = 0; i < sizeof(int); i++)
-            bigEndianBytes[i] = smallEndianBytes[sizeof(int) - i - 1];
+    unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
+    unsigned char *smallEndianBytes = (unsigned char *)&smallEndian;
 
-        return bigEndian;
-    }
+    for(int i = 0; i < sizeof(int); i++)
+        bigEndianBytes[i] = smallEndianBytes[sizeof(int) - i - 1];
 
-    void readInt(std::ifstream &file, int *intBuffer){
-        file.read(reinterpret_cast<char *>(intBuffer),sizeof(int));
-    }
+    return bigEndian;
+}
 
-    void readChar(std::ifstream &file, unsigned char *charBuffer){
-        file.read(reinterpret_cast<char *>(charBuffer),sizeof(char));
-    }
+void snp_utils::readInt(std::ifstream &file, int *intBuffer){
+    file.read(reinterpret_cast<char *>(intBuffer),sizeof(int));
+}
+
+void snp_utils::readChar(std::ifstream &file, unsigned char *charBuffer){
+    file.read(reinterpret_cast<char *>(charBuffer),sizeof(char));
 }

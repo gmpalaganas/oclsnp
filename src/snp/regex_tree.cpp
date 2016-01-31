@@ -1,33 +1,9 @@
+#include "regex_tree.hpp"
+
 /*
  * Based on Huffman Tree
  * Used to decode encoded regex in binary file
  */
-struct node{
-    char value;
-    node *left;
-    node *right;
-
-    node(char val, node* l, node* r);
-    node(char val);
-
-    bool is_leaf();
-
-};
-
-class RegexTree{
-    public:
-        RegexTree();
-        ~RegexTree();
-
-        void insert(char val, node* leaf, int pos);
-        std::string decode(std::string encoded);
-        void destroy_tree();
-        node* get_root();
-
-    private:
-        void destroy_tree(node* leaf);
-        node *root;
-};
 
 node::node(char val, node* l, node* r): value(val), left(l), right(r) { }
 
@@ -92,65 +68,63 @@ std::string RegexTree::decode(std::string encoded){
     return ss.str();
 }
 
-namespace regexTree{
 
-    void construct_tree(RegexTree& tree){
+void regexTree::construct_tree(RegexTree& tree){
 
-        tree.insert('_', tree.get_root(), 0); 
-        tree.insert('_', tree.get_root(), 1); 
+    tree.insert('_', tree.get_root(), 0); 
+    tree.insert('_', tree.get_root(), 1); 
 
-        // Process left half of the tree
-        node *cur_node = tree.get_root()->left;
+    // Process left half of the tree
+    node *cur_node = tree.get_root()->left;
 
-        cur_node->left = new node('_');
-        cur_node->left->left = new node('2');
-        cur_node->left->right = new node('1');
+    cur_node->left = new node('_');
+    cur_node->left->left = new node('2');
+    cur_node->left->right = new node('1');
 
-        cur_node->right = new node('_');
-        cur_node->right->left = new node('+');
+    cur_node->right = new node('_');
+    cur_node->right->left = new node('+');
 
-        cur_node = cur_node->right;
-        cur_node->right = new node('_');
+    cur_node = cur_node->right;
+    cur_node->right = new node('_');
 
-        cur_node = cur_node->right;
-        cur_node->left = new node('6');
-        cur_node->right = new node('_');
+    cur_node = cur_node->right;
+    cur_node->left = new node('6');
+    cur_node->right = new node('_');
 
-        cur_node = cur_node->right;
-        cur_node->left = new node('9');
-        cur_node->right = new node('_');
+    cur_node = cur_node->right;
+    cur_node->left = new node('9');
+    cur_node->right = new node('_');
 
-        cur_node = cur_node->right;
-        cur_node->right = new node('0');
-        cur_node->left = new node('_');
+    cur_node = cur_node->right;
+    cur_node->right = new node('0');
+    cur_node->left = new node('_');
 
-        cur_node = cur_node->left;
-        cur_node->left = new node('(');
-        cur_node->right = new node(')');
+    cur_node = cur_node->left;
+    cur_node->left = new node('(');
+    cur_node->right = new node(')');
 
-        //Process right half of the tree
-        cur_node = tree.get_root()->right;
+    //Process right half of the tree
+    cur_node = tree.get_root()->right;
 
-        cur_node->left = new node('_');
-        cur_node->right = new node('_');
+    cur_node->left = new node('_');
+    cur_node->right = new node('_');
 
-        cur_node->left->left = new node('*');
-        cur_node->left->right = new node('a');
+    cur_node->left->left = new node('*');
+    cur_node->left->right = new node('a');
 
-        cur_node = cur_node->right;
-        cur_node->left = new node('_');
-        cur_node->right = new node('_');
+    cur_node = cur_node->right;
+    cur_node->left = new node('_');
+    cur_node->right = new node('_');
 
-        cur_node->left->left = new node('5');
-        cur_node->left->right = new node('4');
+    cur_node->left->left = new node('5');
+    cur_node->left->right = new node('4');
 
-        cur_node = cur_node->right;
-        cur_node->right = new node('3');
-        cur_node->left = new node('_');
+    cur_node = cur_node->right;
+    cur_node->right = new node('3');
+    cur_node->left = new node('_');
 
-        cur_node = cur_node->left;
-        cur_node->right = new node('8');
-        cur_node->left = new node('7');
+    cur_node = cur_node->left;
+    cur_node->right = new node('8');
+    cur_node->left = new node('7');
 
-    }
-};
+}

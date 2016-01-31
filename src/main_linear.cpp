@@ -15,8 +15,8 @@
 #include <regex>
 #include <boost/regex.hpp>
 
-#include "snp/snp.cpp"
-#include "utils/array.cpp"
+#include "snp/snp.hpp"
+#include "utils/array.hpp"
 
 void cleanup();
 
