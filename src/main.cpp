@@ -1,16 +1,19 @@
 #include "main.h"
 
 double runtime = 0;
+std::string kernelsPath;
 
 // To be configured to accept input file name
 // and number of steps
 int main(int argc, char **argv){
 
-    if(argc != 2){
-        std::cout << "Usage: <compiled_file> <input_binary_file>" << std::endl;
+    if(argc != 3){
+        std::cout << "Usage: <compiled_file> <input_binary_file> <path_to_kernels>" << std::endl;
         std::cout << "I.e ./test inputs/2input_sort.bin" << std::endl;
         exit(1);
     }
+
+    kernelsPath = argv[2];
 
     snp.loadSNPFromFile(argv[1]);
     snp.printSNPContents();
@@ -367,7 +370,8 @@ void initVectorAddKernel(){
 
     //char *src = loadProgramSource(VECTOR_ADD_SRC);
 
-    std::ifstream file(VECTOR_ADD_SRC);
+    std::cout << kernelsPath << VECTOR_ADD_SRC << std::endl;
+    std::ifstream file(kernelsPath + VECTOR_ADD_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -386,7 +390,7 @@ void initVectorAddKernel(){
 void initVectorElemMultKernel(){
 
     //char *src = loadProgramSource(VECTOR_ELEM_MULT_SRC);
-    std::ifstream file(VECTOR_ELEM_MULT_SRC);
+    std::ifstream file(kernelsPath + VECTOR_ELEM_MULT_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -407,7 +411,7 @@ void initVectorElemMultKernel(){
 void initVectorSelectiveAddKernel(){
     //char *src = loadProgramSource(VECTOR_SELECTIVE_ADD_SRC);
 
-    std::ifstream file(VECTOR_SELECTIVE_ADD_SRC);
+    std::ifstream file(kernelsPath + VECTOR_SELECTIVE_ADD_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -426,7 +430,7 @@ void initVectorSelectiveAddKernel(){
 void initSNPComputeNetGainKernel(){
     //char *src = loadProgramSource(SNP_COMPUTE_NET_GAIN_SRC);
 
-    std::ifstream file(SNP_COMPUTE_NET_GAIN_SRC);
+    std::ifstream file(kernelsPath + SNP_COMPUTE_NET_GAIN_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -445,7 +449,7 @@ void initSNPComputeNetGainKernel(){
 void initSNPDetermineRulesKernel(){
     //char *src = loadProgramSource(SNP_DETERMINE_RULES_SRC);
 
-    std::ifstream file(SNP_DETERMINE_RULES_SRC);
+    std::ifstream file(kernelsPath + SNP_DETERMINE_RULES_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -464,7 +468,7 @@ void initSNPDetermineRulesKernel(){
 void initSNPPostComputeKernel(){
     //char *src = loadProgramSource(SNP_POST_COMPUTE_SRC);
 
-    std::ifstream file(SNP_POST_COMPUTE_SRC);
+    std::ifstream file(kernelsPath + SNP_POST_COMPUTE_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -483,7 +487,7 @@ void initSNPPostComputeKernel(){
 void initSNPResetKernel(){
     //char *src = loadProgramSource(SNP_RESET_SRC);
 
-    std::ifstream file(SNP_RESET_SRC);
+    std::ifstream file(kernelsPath + SNP_RESET_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
@@ -502,7 +506,7 @@ void initSNPResetKernel(){
 void initSNPSetStatesKernel(){
     //char *src = loadProgramSource(SNP_SET_STATES_SRC);
 
-    std::ifstream file(SNP_SET_STATES_SRC);
+    std::ifstream file(kernelsPath + SNP_SET_STATES_SRC);
     std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
     file.close();
 
