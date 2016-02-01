@@ -123,6 +123,7 @@ Installing Dependencies
 	    * mingw32-gcc-g++
 	    * msys-base
 	    * msys-make (optional)
+	3. Add C:\MinGW\bin to PATH environment variable
 
 5. Download Boost 1.55 for windows then extract to C:\
 
