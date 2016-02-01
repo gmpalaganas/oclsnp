@@ -272,7 +272,7 @@ int SNP::getRuleRegexCode(int ruleId){
     else if(r.length() > 0){
         boost::regex expr("\\D");
         r = boost::regex_replace(r, expr, "");
-        retVal = std::stoi(r);
+        retVal = boost::lexical_cast<int>(r);
     }else{
         retVal = ruleConsumedSpikes[ruleId];
     }

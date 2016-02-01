@@ -10,6 +10,7 @@
 #include <sstream>
 #include <regex>
 #include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 
 class SNP{
     public:
