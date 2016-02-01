@@ -14,17 +14,16 @@
 #include "snp/snp.hpp"
 #include "utils/array.hpp"
 
-#define MAX_SNP_STRING_LEN 255
 
-#define   VECTOR_ADD_SRC             "vector_add.cl"
-#define   VECTOR_ELEM_MULT_SRC       "vector_elem_mult.cl"
-#define   VECTOR_SELECTIVE_ADD_SRC   "vector_selective_add.cl"
+#define VECTOR_ADD_SRC             "kernels/vector_add.cl"
+#define VECTOR_ELEM_MULT_SRC       "kernels/vector_elem_mult.cl"
+#define VECTOR_SELECTIVE_ADD_SRC   "kernels/vector_selective_add.cl"
 
-#define SNP_COMPUTE_NET_GAIN_SRC "snp_compute_net_gain.cl"
-#define SNP_DETERMINE_RULES_SRC  "snp_determine_rules.cl"
-#define SNP_POST_COMPUTE_SRC     "snp_post_compute.cl"
-#define SNP_RESET_SRC            "snp_reset.cl"
-#define SNP_SET_STATES_SRC       "snp_set_states.cl"
+#define SNP_COMPUTE_NET_GAIN_SRC "kernels/snp_compute_net_gain.cl"
+#define SNP_DETERMINE_RULES_SRC  "kernels/snp_determine_rules.cl"
+#define SNP_POST_COMPUTE_SRC     "kernels/snp_post_compute.cl"
+#define SNP_RESET_SRC            "kernels/snp_reset.cl"
+#define SNP_SET_STATES_SRC       "kernels/snp_set_states.cl"
 
 inline void checkError(cl_int err, std::string msg, std::string fncName);
 inline void checkError(cl_int err, std::string msg, std::string fncName, cl_program program);
