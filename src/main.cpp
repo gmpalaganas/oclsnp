@@ -3,8 +3,6 @@
 double runtime = 0;
 std::string kernelsPath;
 
-namespace fs = boost::filesystem;
-
 // To be configured to accept input file name
 // and number of steps
 int main(int argc, char **argv){
