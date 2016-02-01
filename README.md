@@ -102,6 +102,7 @@ Installing Dependencies
 
 	1. Open git bash
 	2. Set global variables
+	
 		```bash
 		> git config --global user.name "your name"
 		> git config --global user.email your@email.com
