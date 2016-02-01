@@ -61,10 +61,12 @@ Installing Dependencies
 	$ sudo pacman -S gcc
 	```
 
-4. Install git
+4. Install and configure git
 
 	```bash
 	$ sudo pacman -S git
+	$ git config --global user.name "your name"
+	$ git config --global user.email your@email.com
 	```
 
 5. Install OpenCL headers and ICD Loaders
@@ -92,9 +94,68 @@ Installing Dependencies
 	$ sudo pacman -S boost
 	```
 
+### Windows
+
+1. Install the latest driver for your GPU
+
+2. Install and configure git
+
+	1. Open git bash
+	2. Set global variables
+		```bash
+		> git config --global user.name "your name"
+		> git config --global user.email your@email.com
+		```
+
+3. Install OpenCL SDK
+
+	* For NVIDIA install CUDA SDK
+	* For AMD install AMD App SDK
+
+4. Install MinGW
+	
+	* Set destination folder as "C:\MinGW" (default)
+	* On installer select
+		* mingw-developer-toolkit
+		* mingw32-base
+		* mingw32-gcc-g++
+		* msys-base
+		* msys-make (optional)
+
+5. Download Boost 1.55 for windows then extract to C:\
+
+	* Rename folder to boost
+	* cd into boost folder
+		```bash
+		> cd C:\boost
+		```
+	* Build boost
+		```bash
+		> bootsrap mingw
+		> b2 toolset=gcc
+		````
 
 Building
 ------
+
+### On Windows 
+
+1. CD into project root
+
+2. CD into scripts
+	
+	```bash
+	> cd scripts
+	```
+
+3. Run compile.bat
+	
+	```bash
+	> compile
+	```
+
+### On Linux Distros
+
 1. CD into project root
 
 2. Build the project using make
@@ -106,6 +167,9 @@ Building
 
 Running
 ------
+
+### On Linux Distros
+
 1. cd into bin from project root
 
 	```bash
@@ -122,4 +186,24 @@ Running
 	
 	```bash
 	$ ./linsnp <input_binary>
+	```
+
+### On Windows
+
+1. cd into bin from project root
+
+	```bash
+	> cd bin
+	```
+
+2. For Parallel
+
+	```bash
+	> oclsnp <input_binary>
+	```
+
+3. For Linear
+	
+	```bash
+	> linsnp <input_binary>
 	```
