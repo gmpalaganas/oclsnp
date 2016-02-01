@@ -111,15 +111,15 @@ Installing Dependencies
 
 3. Install OpenCL SDK
 
-   * For NVIDIA install CUDA SDK
-   * For AMD install AMD App SDK
+	* For NVIDIA install CUDA SDK
+	* For AMD install AMD App SDK
 
 4. Install MinGW
 
    * Set destination folder as "C:\MinGW" (default)
    * On installer select
-      *mingw-developer-toolkit
-      *mingw32-base
+      * mingw-developer-toolkit
+      * mingw32-base
 	  * mingw32-gcc-g++
 	  * msys-base
 	  * msys-make (optional)
