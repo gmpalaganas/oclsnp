@@ -116,12 +116,14 @@ int main(int argc, char **argv){
 }
 
 inline void checkError(cl_int err, std::string msg, std::string fncName){
+
     if(err == EXECUTE_FAILURE){
         std::cerr << "Error in " << fncName << "(): " << msg << std::endl;
+
+        cleanup();
+        exit(1);
     }
 
-    cleanup();
-    exit(1);
 }
 
 //Check for cl errors, if errors were detected, cleanup
