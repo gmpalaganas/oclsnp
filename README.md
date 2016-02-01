@@ -129,12 +129,12 @@ Installing Dependencies
    * Rename folder to boost
    * cd into boost folder
 
-      ```bash
+      ```
       > cd C:\boost
       ```
    * Build boost
    
-      ```bash
+      ```s
       > bootsrap mingw
 	  > b2 toolset=gcc
 	  ````
@@ -158,13 +158,13 @@ Building
 
 2. CD into scripts
 	
-	```bash
+	```
 	> cd scripts
 	```
 
 3. Run compile.bat
 	
-	```bash
+	```
 	> compile
 	```
 
@@ -195,18 +195,18 @@ Running
 
 1. cd into bin from project root
 
-	```bash
+	```
 	> cd bin
 	```
 
 2. For Parallel
 
-	```bash
+	```
 	> oclsnp <input_binary>
 	```
 
 3. For Linear
 	
-	```bash
+	```
 	> linsnp <input_binary>
 	```
