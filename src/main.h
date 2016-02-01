@@ -14,6 +14,7 @@
 #include "snp/snp.hpp"
 #include "utils/array.hpp"
 
+#define EXECUTE_FAILURE -1
 
 #define VECTOR_ADD_SRC             "kernels/vector_add.cl"
 #define VECTOR_ELEM_MULT_SRC       "kernels/vector_elem_mult.cl"
@@ -26,7 +27,8 @@
 #define SNP_SET_STATES_SRC       "kernels/snp_set_states.cl"
 
 inline void checkError(cl_int err, std::string msg, std::string fncName);
-inline void checkError(cl_int err, std::string msg, std::string fncName, cl_program program);
+inline void checkCLError(cl_int err, std::string msg, std::string fncName);
+inline void checkCLError(cl_int err, std::string msg, std::string fncName, cl_program program);
 inline std::string getCLError(cl_int errorCode);
 void cleanup();
 

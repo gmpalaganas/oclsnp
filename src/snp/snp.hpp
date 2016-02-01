@@ -32,7 +32,7 @@ class SNP{
         std::string *neuronLabels;
         int **synapseMatrix = NULL;
 
-        void loadSNPFromFile(std::string fileName);
+        int loadSNPFromFile(std::string fileName);
         void printSNPContents();
 
         int getRuleRegexCode(int ruleId);

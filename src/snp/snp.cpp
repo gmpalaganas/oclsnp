@@ -22,8 +22,10 @@ SNP::~SNP(){
     destroyInputSpikeTrain();
 }
 
-void SNP::loadSNPFromFile(std::string fileName){
+int SNP::loadSNPFromFile(std::string fileName){
     std::ifstream input(fileName, std::ios::binary);
+
+    if(input == NULL) return -1;
 
     input.seekg(0, std::ios::end);
     int length = input.tellg();
@@ -160,6 +162,8 @@ void SNP::loadSNPFromFile(std::string fileName){
     }
 
     input.close();
+    
+    return 0;
 }
 
 void SNP::destroySynapseMatrix(){
