@@ -37,23 +37,23 @@ Installing Dependencies
 
 1. Update repositories
 
-```bash
-$ sudo pacman -Syu
-```
+	```bash
+	$ sudo pacman -Syu
+	```
 
 2. Install packer
 
-```
-$ sudo pacman -S wget expac jshon
-$ mkdir packer
-$ cd packer
-$ sudo wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=packer
-$ mv PKGBUILD?h=packer PKGBUILD
-$ makepkg
-$ sudo pacman -U packer-*********-*-any.pkg.tar.xz
-$ cd ..
-$ sudo rm -dR packer 
-```
+	```
+	$ sudo pacman -S wget expac jshon
+	$ mkdir packer
+	$ cd packer
+	$ sudo wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=packer
+	$ mv PKGBUILD?h=packer PKGBUILD
+	$ makepkg
+	$ sudo pacman -U packer-*********-*-any.pkg.tar.xz
+	$ cd ..
+	$ sudo rm -dR packer 
+	```
 
 3. Install gcc
 
