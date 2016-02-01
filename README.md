@@ -112,14 +112,14 @@ Running
 	$ cd bin
 	```
 
-2.Type in the following command
+2. For Parallel
 
 	```bash
-	//For parallel implementation 
+	$ ./oclsnp <input_binary>
+	```
 
-	$ ./oclsnp <input_binary> 
+3. For Linear
 	
-	//For linear implementation
-
+	```bash
 	$ ./linsnp <input_binary>
 	```
