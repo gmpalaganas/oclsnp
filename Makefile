@@ -1,6 +1,6 @@
 CC = g++
 INCLUDES = -Isrc/snp -Isrc/utils
-LIBS = -lOpenCL -lboost_regex -lboost_filesystem -lboost_system
+LIBS = -lOpenCL -lboost_regex
 CFLAGS = -c -std=c++11 -Wall
 
 all: oclsnp linsnp bin/kernels
