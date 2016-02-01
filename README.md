@@ -76,17 +76,18 @@ Installing Dependencies
 	```
 
 6. Install GPU dependent dependencies
+
 	AMD
 
-		```bash
-		$ sudo packer -S opencl-catalyst amdapp-sdk
-		```
+	   ```bash
+	   $ sudo packer -S opencl-catalyst amdapp-sdk
+	   ```
 
 	NVIDIA
 
-		```bash
-		$ sudo pacman -S opencl-nvidia cuda
-		```
+	   ```bash
+	   $ sudo pacman -S opencl-nvidia cuda
+	   ```
 
 7. Install boost
 
@@ -110,8 +111,8 @@ Installing Dependencies
 
 3. Install OpenCL SDK
 
-	* For NVIDIA install CUDA SDK
-	* For AMD install AMD App SDK
+  * For NVIDIA install CUDA SDK
+  * For AMD install AMD App SDK
 
 4. Install MinGW
 
@@ -128,15 +129,15 @@ Installing Dependencies
    * Rename folder to boost
    * cd into boost folder
 
-		```bash
-		> cd C:\boost
-		```
+      ```bash
+      > cd C:\boost
+      ```
    * Build boost
    
-		```bash
-		> bootsrap mingw
-		> b2 toolset=gcc
-		````
+      ```bash
+      > bootsrap mingw
+	  > b2 toolset=gcc
+	  ````
 
 Building
 ------
