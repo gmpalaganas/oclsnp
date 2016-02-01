@@ -108,9 +108,10 @@ int main(int argc, char **argv){
 
     outputStream << "************************************" << std::endl;
     outputStream << "Configuration after " << step - 1 << " steps:\n";
+    outputStream << "------------------------------------" << std::endl;
     for(int i = 0; i < m; i++){
         outputStream << "NEURON " << i+1 << ": " << snp.neuronLabels[i] << std::endl; 
-        outputStream << "Spikes: " << configVector[i];
+        outputStream << "Spikes: " << configVector[i] << std::endl;
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
     

@@ -5,6 +5,15 @@ An OpenCL implementation of a simulator for Spiking Neural Systems.
 The project uses OpenCL 1.1 libraries on top of C++11.
 
 
+Limitations
+------
+
+- Non-determenism is not yet supported
+- Tested upto input with 336 neurons and 480 rules
+- Features not implemented
+    - GUI
+    - Flags (i.e. -o --no-print)
+
 Dependencies
 ------
 
