@@ -111,8 +111,8 @@ Installing Dependencies
 
 3. Install OpenCL SDK
 
-  * For NVIDIA install CUDA SDK
-  * For AMD install AMD App SDK
+   * For NVIDIA install CUDA SDK
+   * For AMD install AMD App SDK
 
 4. Install MinGW
 
