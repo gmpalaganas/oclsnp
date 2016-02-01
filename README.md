@@ -57,40 +57,40 @@ $ sudo rm -dR packer
 
 3. Install gcc
 
-```bash
-$ sudo pacman -S gcc
-```
+	```bash
+	$ sudo pacman -S gcc
+	```
 
 4. Install git
 
-```bash
-$ sudo pacman -S git
-```
+	```bash
+	$ sudo pacman -S git
+	```
 
 5. Install OpenCL headers and ICD Loaders
 
-``bash
-$ sudo pacman -S ocl-icd opencl-headers
-```
+	```	bash
+	$ sudo pacman -S ocl-icd opencl-headers
+	```
 
 6. Install GPU dependent dependencies
-...AMD
+	AMD
 
-```bash
-$ sudo packer -S opencl-catalyst amdapp-sdk
-```
+		```bash
+		$ sudo packer -S opencl-catalyst amdapp-sdk
+		```
 
-...NVIDIA
+	NVIDIA
 
-```bash
-$ sudo pacman -S opencl-nvidia cuda
-```
+		```bash
+		$ sudo pacman -S opencl-nvidia cuda
+		```
 
 7. Install boost
 
-```bash
-$ sudo pacman -S boost
-```
+	```bash
+	$ sudo pacman -S boost
+	```
 
 
 Building
@@ -99,27 +99,29 @@ Building
 
 2. Build the project using make
 
-```bash
-$ make
-```
+	```bash
+	$ make
+	```
 
 
 Running
 ------
 1. cd into bin from project root
-```bash
-$ cd bin
-```
+
+	```bash
+	$ cd bin
+	```
 
 2.Type in the following command
 
-...For parallel implementation 
+	For parallel implementation 
 
-```bash
-$ ./oclsnp <input_binary> 
-```
+		```bash
+		$ ./oclsnp <input_binary> 
+		```
 
-...For linear implementation
-```bash
-$ ./linsnp <input_binary>
-```
+	For linear implementation
+	
+		```bash
+		$ ./linsnp <input_binary>
+		```
