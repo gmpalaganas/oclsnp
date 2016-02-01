@@ -111,30 +111,30 @@ Installing Dependencies
 
 3. Install OpenCL SDK
 
-	* For NVIDIA install CUDA SDK
-	* For AMD install AMD App SDK
+  * For NVIDIA install CUDA SDK
+  * For AMD install AMD App SDK
 
 4. Install MinGW
 
-   * Set destination folder as "C:\MinGW" (default)
-   * On installer select
-      * mingw-developer-toolkit
-      * mingw32-base
-	  * mingw32-gcc-g++
-	  * msys-base
-	  * msys-make (optional)
+  * Set destination folder as "C:\MinGW" (default)
+  * On installer select
+     * mingw-developer-toolkit
+     * mingw32-base
+	 * mingw32-gcc-g++
+	 * msys-base
+	 * msys-make (optional)
 
 5. Download Boost 1.55 for windows then extract to C:\
 
-   * Rename folder to boost
-   * cd into boost folder
+  * Rename folder to boost
+  * cd into boost folder
 
       ```
       > cd C:\boost
       ```
-   * Build boost
+  * Build boost
    
-      ```s
+      ```
       > bootsrap mingw
 	  > b2 toolset=gcc
 	  ````
