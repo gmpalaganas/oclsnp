@@ -114,14 +114,12 @@ Running
 
 2.Type in the following command
 
-	*For parallel implementation 
+	```bash
+	//For parallel implementation 
 
-		```bash
-		$ ./oclsnp <input_binary> 
-		```
-
-	*For linear implementation
+	$ ./oclsnp <input_binary> 
 	
-		```bash
-		$ ./linsnp <input_binary>
-		```
+	//For linear implementation
+
+	$ ./linsnp <input_binary>
+	```
