@@ -114,23 +114,25 @@ Installing Dependencies
 	* For AMD install AMD App SDK
 
 4. Install MinGW
-	
-	* Set destination folder as "C:\MinGW" (default)
-	* On installer select
-		* mingw-developer-toolkit
-		* mingw32-base
-		* mingw32-gcc-g++
-		* msys-base
-		* msys-make (optional)
+
+   * Set destination folder as "C:\MinGW" (default)
+   * On installer select
+      *mingw-developer-toolkit
+      *mingw32-base
+	  * mingw32-gcc-g++
+	  * msys-base
+	  * msys-make (optional)
 
 5. Download Boost 1.55 for windows then extract to C:\
 
-	* Rename folder to boost
-	* cd into boost folder
+   * Rename folder to boost
+   * cd into boost folder
+
 		```bash
 		> cd C:\boost
 		```
-	* Build boost
+   * Build boost
+   
 		```bash
 		> bootsrap mingw
 		> b2 toolset=gcc
@@ -138,6 +140,16 @@ Installing Dependencies
 
 Building
 ------
+
+### On Linux Distros
+
+1. CD into project root
+
+2. Build the project using make
+
+	```bash
+	$ make
+	```
 
 ### On Windows 
 
@@ -154,17 +166,6 @@ Building
 	```bash
 	> compile
 	```
-
-### On Linux Distros
-
-1. CD into project root
-
-2. Build the project using make
-
-	```bash
-	$ make
-	```
-
 
 Running
 ------
