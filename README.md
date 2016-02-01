@@ -11,43 +11,115 @@ Dependencies
 This project is hardware dependent so machines with different GPUs have different dependencies.
 
 ### GENERAL DEPENDENCIES
-- ocl-icd
-- opencl-headers
-- boost (C++ libraries, used for handling Regular Expressions)
+- Git
+- OpenCL ICD Loader
+- OpenCL headers
+- C++ Boost library
+- Make
+- GNU g++ compiler
 
 ### MACHINES WITH NVIDIA CARD
 - nVidia drivers for the card in your machine
+- CUDA SDK
 - opencl-nvidia (Needed for execution) - cuda (Note: Nvidia implementation only currently supports OpenCL 1.1)
 
 ### MACHINES WITH ATI CARD
 - ATI drivers for the card in your machine
+- AMD App SDK
+
 - opencl-catalyst or opencl-mesa
 - amdapp-sdk
 
-
-Compiling
+Installing Dependencies
 ------
-For the parallel implementation
+
+### Arch-Linux and Arch-based Linux Distributions
+
+1. Update repositories
+
+```bash
+$ sudo pacman -Syu
+```
+
+2. Install packer
 
 ```
-$ g++ src/main.cpp -o <output_file> -lOpenCL -lboost_regex -std=c++11
+$ sudo pacman -S wget expac jshon
+$ mkdir packer
+$ cd packer
+$ sudo wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=packer
+$ mv PKGBUILD?h=packer PKGBUILD
+$ makepkg
+$ sudo pacman -U packer-*********-*-any.pkg.tar.xz
+$ cd ..
+$ sudo rm -dR packer 
 ```
 
-For the linear implementation
+3. Install gcc
 
+```bash
+$ sudo pacman -S gcc
 ```
-$ g++ src/main_linear.cpp -o <output_file> -lboost_regex -std=c++11
+
+4. Install git
+
+```bash
+$ sudo pacman -S git
 ```
+
+5. Install OpenCL headers and ICD Loaders
+
+``bash
+$ sudo pacman -S ocl-icd opencl-headers
+```
+
+6. Install GPU dependent dependencies
+...AMD
+
+```bash
+$ sudo packer -S opencl-catalyst amdapp-sdk
+```
+
+...NVIDIA
+
+```bash
+$ sudo pacman -S opencl-nvidia cuda
+```
+
+7. Install boost
+
+```bash
+$ sudo pacman -S boost
+```
+
+
+Building
+------
+1. CD into project root
+
+2. Build the project using make
+
+```bash
+$ make
+```
+
 
 Running
 ------
-For parallel implementation 
+1. cd into bin from project root
+```bash
+$ cd bin
+```
 
-```
-$ ./<output_file_from_compilation> <input_binary>  <path_to_kernels_dir>
+2.Type in the following command
+
+...For parallel implementation 
+
+```bash
+$ ./oclsnp <input_binary> 
 ```
 
-For linear implementation
-```
-$ ./<output_file_from_compilation> <input_binary>
+...For linear implementation
+```bash
+$ ./linsnp <input_binary>
 ```
