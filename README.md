@@ -35,10 +35,16 @@ Software Versions
 
 ### Linux Distributions
 - git 2.7.0
+- g++ 5.3.0
 - boost 1.6.0
 - make 4.1
-- g++ 5.3.0
-- cuda 7.5.18
+- cuda 7.5
+
+### Windows
+- git 2.7.0
+- g++ 4.8.1
+- boost 1.55.0
+- cuda 7.5
 
 Installing Dependencies
 ------
@@ -135,7 +141,7 @@ Installing Dependencies
 	    * msys-make (optional)
 	3. Add C:\MinGW\bin to PATH environment variable
 
-5. Download Boost 1.55 for windows then extract to C:\
+5. Download Boost 1.60 for windows then extract to C:\
 
       1. Rename folder to boost
       2. cd into boost folder

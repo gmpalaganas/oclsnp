@@ -5,15 +5,6 @@ An OpenCL implementation of a simulator for Spiking Neural Systems.
 The project uses OpenCL 1.1 libraries on top of C++11.
 
 
-Limitations
-------
-
-- Non-determenism is not yet supported
-- Tested upto input with 336 neurons and 480 rules
-- Features not implemented
-    - GUI
-    - Flags (i.e. -o --no-print)
-
 Dependencies
 ------
 
@@ -42,7 +33,6 @@ This project is hardware dependent so machines with different GPUs have differen
 Software Versions
 ------
 
-### Linux Distributions
 - git 2.7.0
 - boost 1.6.0
 - make 4.1
@@ -95,17 +85,18 @@ Installing Dependencies
 	```
 
 6. Install GPU dependent dependencies
+
 	AMD
 
-		```bash
-		$ sudo packer -S opencl-catalyst amdapp-sdk
-		```
+	   ```bash
+	   $ sudo packer -S opencl-catalyst amdapp-sdk
+	   ```
 
 	NVIDIA
 
-		```bash
-		$ sudo pacman -S opencl-nvidia cuda
-		```
+	   ```bash
+	   $ sudo pacman -S opencl-nvidia cuda
+	   ```
 
 7. Install boost
 
@@ -129,33 +120,16 @@ Installing Dependencies
 
 3. Install OpenCL SDK
 
-	* For NVIDIA install CUDA SDK
-	* For AMD install AMD App SDK
+    1. For NVIDIA install CUDA SDK
+    2. For AMD install AMD App SDK
 
 4. Install MinGW
 
-   * Set destination folder as "C:\MinGW" (default)
-   * On installer select
-      *mingw-developer-toolkit
-      *mingw32-base
-	  * mingw32-gcc-g++
-	  * msys-base
-	  * msys-make (optional)
+    1. Download a preconfigured distro of MinGW here: (http://nuwen.net/mingw.html) 
+    2. Extract to C:\
+	3. Add C:\MinGW\bin to PATH environment variable
 
-5. Download Boost 1.55 for windows then extract to C:\
-
-   * Rename folder to boost
-   * cd into boost folder
-
-		```bash
-		> cd C:\boost
-		```
-   * Build boost
-   
-		```bash
-		> bootsrap mingw
-		> b2 toolset=gcc
-		````
+	  	````
 
 Building
 ------
@@ -176,13 +150,13 @@ Building
 
 2. CD into scripts
 	
-	```bash
+	```
 	> cd scripts
 	```
 
 3. Run compile.bat
 	
-	```bash
+	```
 	> compile
 	```
 
@@ -213,18 +187,18 @@ Running
 
 1. cd into bin from project root
 
-	```bash
+	```
 	> cd bin
 	```
 
 2. For Parallel
 
-	```bash
+	```
 	> oclsnp <input_binary>
 	```
 
 3. For Linear
 	
-	```bash
+	```
 	> linsnp <input_binary>
 	```
