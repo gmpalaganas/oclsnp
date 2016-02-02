@@ -15,8 +15,8 @@ This project is hardware dependent so machines with different GPUs have differen
 - OpenCL ICD Loader
 - OpenCL headers
 - C++ Boost library
-- Make
-- GNU g++ compiler
+- GNU Make
+- GNU g++
 
 ### MACHINES WITH NVIDIA CARD
 - nVidia drivers for the card in your machine
@@ -29,6 +29,16 @@ This project is hardware dependent so machines with different GPUs have differen
 
 - opencl-catalyst or opencl-mesa
 - amdapp-sdk
+
+Software Versions
+------
+
+### Linux Distributions
+- git 2.7.0
+- boost 1.6.0
+- make 4.1
+- g++ 5.3.0
+- cuda 7.5.18
 
 Installing Dependencies
 ------
