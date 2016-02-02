@@ -95,8 +95,6 @@ int main(int argc, char **argv){
 
         outputStream << "------------------------------------" << std::endl;
 
-        outputStream << "------------------------------------" << std::endl;
-
         for(int j = 0; j < m; j++){
             outputStream << "NEURON " << j+1 << ":" << snp.neuronLabels[j] << std::endl; 
             outputStream << "Spikes: " << configVector[j] << std::endl;
@@ -108,7 +106,7 @@ int main(int argc, char **argv){
 
     outputStream << "************************************" << std::endl;
     outputStream << "Configuration after " << step - 1 << " steps:\n";
-    outputStream << "------------------------------------" << std::endl;
+    outputStream << "------------------------------------" << std::endl;    
     for(int i = 0; i < m; i++){
         outputStream << "NEURON " << i+1 << ": " << snp.neuronLabels[i] << std::endl; 
         outputStream << "Spikes: " << configVector[i] << std::endl;
