@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <iterator>
 #include <algorithm>
 #include <ctime>
@@ -129,4 +130,4 @@ float *delays;
 float *transitionVector;
 float *lhs;
 
-
+std::ofstream outputFile;

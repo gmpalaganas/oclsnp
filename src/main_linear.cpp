@@ -1,50 +1,4 @@
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <bitset>
-#include <vector>
-#include <iterator>
-#include <algorithm>
-#include <ctime>
-#include <regex>
-#include <boost/regex.hpp>
-
-#include "snp/snp.hpp"
-#include "utils/array.hpp"
-
-void cleanup();
-
-bool areRulesApplicable(float *spikingVector, int n);
-
-void vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
-void vectorElemMult(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
-void vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int cols);
-void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector);
-void snpDetermineRules(int n, int m,  float *configVector, float *spikingVector, float *rules, float *lhs);
-void snpPostCompute(int n, int m,  float *rules, float *transitionVector);
-void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector);
-void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
-        float* stateVector,  float* transitionVector);
-
-
-SNP snp;
-
-float *configVector;
-float *spikingVector;
-float *stateVector;
-float *lossVector;
-float *gainVector;
-float *netGainVector;
-float *rules;
-float *delays;
-float *transitionVector;
-float *lhs;
+#include "main_linear.hpp"
 
 double runtime = 0;
 
@@ -52,8 +6,21 @@ double runtime = 0;
 // and number of steps
 int main(int argc, char **argv){
 
+    std::stringstream outputStream;
 
-    snp.loadSNPFromFile(argv[1]);
+    if(argc == 3){
+        outputFile = std::ofstream(argv[2]);
+    }else if(argc < 2){
+        std::cout << "Usage: ./oclsnp <input_binary_file> [output_file]" << std::endl;
+        std::cout << "I.e ./oclsnp ../inputs/2input_sort.bin outputs/2input_sort_out.txt" << std::endl;
+        exit(1);
+    }
+
+    int err;
+
+    err = snp.loadSNPFromFile(argv[1]);
+    checkError(err, "Invalid Binary file", __FUNCTION__);
+
     snp.printSNPContents();
 
     int n = snp.ruleCount;
@@ -107,8 +74,8 @@ int main(int argc, char **argv){
         if(!areRulesApplicable(spikingVector,n))
                 break;
     
-        std::cout << "************************************" << std::endl;
-        std::cout << "At step " << step << ":" << std::endl;
+        outputStream << "************************************" << std::endl;
+        outputStream << "At step " << step << ":" << std::endl;
 
         snpSetStates(n, m, configVector, spikingVector, rules, delays, lossVector, stateVector, transitionVector);
         vectorSelectiveAdd(transitionVector, gainVector, n, m);
@@ -118,34 +85,53 @@ int main(int argc, char **argv){
         snpReset(n, m, lossVector, gainVector, netGainVector);
 
 
-        std::cout << "CHOSEN RULES" << std::endl;
+        outputStream << "CHOSEN RULES" << std::endl;
         for(int j = 0; j < n; j++){
             if(spikingVector[j] == 1){
-                std::cout << "Rule from neuron " << snp.ruleIds[j] << ": " << snp.getRule(j) << std::endl;
+                outputStream << "Rule from neuron " << snp.ruleIds[j] << ": " << snp.getRule(j) << std::endl;
             }
         }
 
-        std::cout << "------------------------------------" << std::endl;
+        outputStream << "------------------------------------" << std::endl;
 
         for(int j = 0; j < m; j++){
-            std::cout << "NEURON " << j+1 << ":" << snp.neuronLabels[j] << std::endl; std::cout << "Spikes: " << configVector[j] << std::endl;
+            outputStream << "NEURON " << j+1 << ":" << snp.neuronLabels[j] << std::endl; 
+            outputStream << "Spikes: " << configVector[j] << std::endl;
+            outputStream << "State: " << stateVector[j] << std::endl << std::endl;
         }
 
         step++;
     }while(areRulesApplicable(spikingVector,n));
 
-    std::cout << "************************************" << std::endl;
-    std::cout << "Configuration after " << step - 1 << " steps:\n";
+    outputStream << "************************************" << std::endl;
+    outputStream << "Configuration after " << step - 1 << " steps:\n";
     for(int i = 0; i < m; i++){
-        std::cout << "Neuron " << i << " :" << std::endl;
-        std::cout << "Spikes: " << configVector[i];
-        std::cout << " State: " << stateVector[i] << std::endl << std::endl;
+        outputStream << "NEURON " << i+1 << ": " << snp.neuronLabels[i] << std::endl; 
+        outputStream << "Spikes: " << configVector[i];
+        outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
-    std::cout << "Execution time: " << runtime << std::endl;
+    outputStream << "Execution time: " << runtime << std::endl;
+
+    std::cout << outputStream.str();
+
+    if(outputFile){
+        outputFile << outputStream.str();
+    }
 
     cleanup();
 
     return 0;
+
+}
+
+inline void checkError(int err, std::string msg, std::string fncName){
+
+    if(err == EXECUTE_FAILURE){
+        std::cerr << "Error in " << fncName << "(): " << msg << std::endl;
+
+        cleanup();
+        exit(1);
+    }
 
 }
 
