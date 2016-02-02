@@ -4,7 +4,7 @@ set ocl_dll="C:\Program Files\NVIDIA Corporation\OpenCL\OpenCL.dll"
 set ocl_headers="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include"
 set boost_headers="C:\boost"
 set boost_lib="C:\boost\stage\lib"
-set boost_regex_lib=-lboost_regex-mgw48-mt-1_6
+set boost_regex_lib=-lboost_regex-mgw48-mt-1_55
 set source_files=../src/utils/array.cpp ../src/snp/utils.cpp ../src/snp/regex_tree.cpp ../src/snp/snp.cpp
 
 echo Compiling Parallel Implementation
