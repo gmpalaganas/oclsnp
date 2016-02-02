@@ -5,6 +5,19 @@ An OpenCL implementation of a simulator for Spiking Neural Systems.
 The project uses OpenCL 1.1 libraries on top of C++11.
 
 
+Limitations
+------
+
+- Non-determenism is not yet supported
+- Built-in Environment not yet supported
+    - This means you have still have to create an "Environment neuron" to simulate an environment
+    - As an effect, input and output spike train not yet supported
+- Tested upto input with 336 neurons and 480 rules
+- Features not implemented
+    - GUI
+    - Flags (i.e. -o --no-print)
+
+
 Dependencies
 ------
 

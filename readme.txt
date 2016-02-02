@@ -5,6 +5,19 @@ An OpenCL implementation of a simulator for Spiking Neural Systems.
 The project uses OpenCL 1.1 libraries on top of C++11.
 
 
+Limitations
+------
+
+- Non-determenism is not yet supported
+- Built-in Environment not yet supported
+    - This means you have still have to create an "Environment neuron" to simulate an environment
+    - As an effect, input and output spike train not yet supported
+- Tested upto input with 336 neurons and 480 rules
+- Features not implemented
+    - GUI
+    - Flags (i.e. -o --no-print)
+
+
 Dependencies
 ------
 
@@ -33,11 +46,18 @@ This project is hardware dependent so machines with different GPUs have differen
 Software Versions
 ------
 
+### Linux Distributions
 - git 2.7.0
+- g++ 5.3.0
 - boost 1.6.0
 - make 4.1
-- g++ 5.3.0
-- cuda 7.5.18
+- cuda 7.5
+
+### Windows
+- git 2.7.0
+- g++ 4.8.1
+- boost 1.55.0
+- cuda 7.5
 
 Installing Dependencies
 ------
@@ -125,10 +145,28 @@ Installing Dependencies
 
 4. Install MinGW
 
-    1. Download a preconfigured distro of MinGW here: (http://nuwen.net/mingw.html) 
-    2. Extract to C:\
+    1. Set destination folder as "C:\MinGW" (default)
+    2. On installer select
+        * mingw-developer-toolkit
+        * mingw32-base
+	    * mingw32-gcc-g++
+	    * msys-base
+	    * msys-make (optional)
 	3. Add C:\MinGW\bin to PATH environment variable
 
+5. Download Boost 1.60 for windows then extract to C:\
+
+      1. Rename folder to boost
+      2. cd into boost folder
+
+      	```
+      	> cd C:\boost
+      	```
+  	  3. Build boost
+   
+      	```
+      	> bootsrap mingw
+	  	> b2 toolset=gcc
 	  	````
 
 Building
