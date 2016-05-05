@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <regex>
-#include <boost/regex.hpp>
+#include <re2/re2.h>
 #include <boost/lexical_cast.hpp>
 
 class SNP{

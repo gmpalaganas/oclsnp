@@ -261,8 +261,8 @@ int SNP::getRuleRegexCode(int ruleId){
     if(r == "a+")
         retVal = 0;
     else if(r.length() > 0){
-        boost::regex expr("\\D");
-        r = boost::regex_replace(r, expr, "");
+        re2::RE2 expr("\\D");
+        re2::RE2::GlobalReplace(&r, expr, "");
         retVal = boost::lexical_cast<int>(r);
     }else{
         retVal = ruleConsumedSpikes[ruleId];
