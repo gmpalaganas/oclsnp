@@ -1,6 +1,6 @@
 CC = g++
 INCLUDES = -Isrc/snp -Isrc/utils
-LIBS = -lOpenCL -lre2 -lpthread
+LIBS = -lOpenCL -lre2 -pthread
 CFLAGS = -c -std=c++11 -Wall
 
 all: oclsnp linsnp bin/kernels
