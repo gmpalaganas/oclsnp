@@ -1,6 +1,6 @@
 
 #include "regex_tree.hpp" 
-#include "utils.hpp"
+#include "binary_reader.hpp"
 
 #include <string>
 #include <bitset>
@@ -36,6 +36,7 @@ class SNP{
         void printSNPContents();
 
         int getRuleRegexCode(int ruleId);
+        std::string getRuleRegex(int ruleId);
         std::string getRule(int ruleId);
 
     private:

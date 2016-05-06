@@ -36,7 +36,8 @@ int main(int argc, char **argv){
     rules = new float[n * 3]();
     delays = new float[n]();
     transitionVector = new float[(m + 1) * n]();
-    lhs = new float[n]();
+    regexs = new std::string[n]();
+
 
     //Copy snp initial config to configVector
     copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
@@ -59,18 +60,27 @@ int main(int argc, char **argv){
         for(int j = 1; j < m + 1; j++){
             if(snp.synapseMatrix[snp.ruleIds[i]][j] == 1)
                 transitionVector[i * (m + 1) + j] = snp.ruleProducedSpikes[i];
-        }
+        } 
     }
-    
-    for(int i = 0; i < n; i++)
-        lhs[i] = snp.getRuleRegexCode(i);
-    
+
+    printVectorAs2DArray(transitionVector, n, m);
+            
+    for(int i = 0; i < n; i++){
+        regexs[i] = expandRegex(snp.getRuleRegex(i));
+    }
+
     int step = 1;
 
     //Simulation Proper
     do{
     
-        gpu::snpDetermineRules(n, m, configVector, spikingVector, rules, lhs);
+        matchRulesRegex(regexs, rules, configVector, spikingVector, n);
+        std::cout << "Spiking Vector\n";
+        printArray(spikingVector, n);
+        std::cout << "Config Vector\n";
+        printArray(configVector, m);
+        std::cout << "Rules Vector\n";
+        printVectorAs2DArray(rules, n, 3);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -104,8 +114,7 @@ int main(int argc, char **argv){
         step++;
     }while(areRulesApplicable(spikingVector,n));
 
-    outputStream << "************************************" << std::endl;
-    outputStream << "Configuration after " << step - 1 << " steps:\n";
+    outputStream << "************************************" << std::endl; outputStream << "Configuration after " << step - 1 << " steps:\n";
     outputStream << "------------------------------------" << std::endl;    
     for(int i = 0; i < m; i++){
         outputStream << "NEURON " << i+1 << ": " << snp.neuronLabels[i] << std::endl; 
@@ -280,7 +289,6 @@ void cleanup(){
     clReleaseMemObject(clRulesBuffer);
     clReleaseMemObject(clDelaysBuffer);
     clReleaseMemObject(clTransitionBuffer);
-    clReleaseMemObject(clLHSBuffer);
 
     delete[] configVector;
     delete[] spikingVector;
@@ -291,7 +299,7 @@ void cleanup(){
     delete[] rules;
     delete[] delays;
     delete[] transitionVector;
-    delete[] lhs;
+    delete[] regexs;
 
     if(outputFile)
         outputFile.close();
@@ -338,9 +346,6 @@ void initCL(int n, int m){
     checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 
     clTransitionBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * (m + 1) * sizeof(float), NULL, &clErr); 
-    checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
-
-    clLHSBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(float), NULL, &clErr); 
     checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 
 }
@@ -703,28 +708,18 @@ void gpu::snpComputeNetGain(int n, int m, float *stateVector, float *lossVector,
 
 
 
-void gpu::snpDetermineRules(int n, int m,  float *configVector, float *spikingVector, float *rules, float *lhs){
+void gpu::snpDetermineRules(int n, float *spikingVector, float *rules){
     size_t globalSize = n;
     
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clConfigBuffer,CL_FALSE,0, m * sizeof(float), configVector, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clBuffer A", __FUNCTION__);
     clErr = clEnqueueWriteBuffer(clCommandQueue,clRulesBuffer,CL_FALSE,0,3 * n * sizeof(float), rules, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clBuffer C", __FUNCTION__);
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clLHSBuffer,CL_FALSE,0,n * sizeof(float), lhs, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clBuffer D", __FUNCTION__);
+    checkCLError(clErr, "Unable to enqueue write clBuffer B", __FUNCTION__);
 
     clErr = clSetKernelArg(snpDetermineRulesKernel,0,sizeof(cl_int),&n);
     checkCLError(clErr, "Unable to set kernel param 0", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,1,sizeof(cl_int),&m);
-    checkCLError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clConfigBuffer);
-    checkCLError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,3,sizeof(cl_mem),&clSpikingBuffer);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,1,sizeof(cl_mem),&clSpikingBuffer);
     checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,4,sizeof(cl_mem),&clRulesBuffer);
-    checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,5,sizeof(cl_mem),&clLHSBuffer);
-    checkCLError(clErr, "Unable to set kernel param 5", __FUNCTION__);
+    clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clRulesBuffer);
+    checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
     std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpDetermineRulesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
@@ -862,4 +857,25 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     clEnqueueReadBuffer(clCommandQueue, clTransitionBuffer, CL_TRUE, 0, (m + 1) * n  * sizeof(float), transitionVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer G", __FUNCTION__);
 
+}
+
+void matchRuleRegex(std::string regex, std::string str, float* isMatch){
+    re2::StringPiece input(str);
+    *(isMatch) = re2::RE2::FullMatch(input,regex);
+}
+
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize){
+
+    std::thread threads[vectorSize];
+
+    for(int i = 0; i < vectorSize; i++){
+        std::string expandedRegex = regexVector[i];
+        std::string spikeString = expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
+        float *ruleMarkPtr = spikingVector + i;
+        threads[i] = std::thread(matchRuleRegex, expandedRegex, spikeString, ruleMarkPtr);
+    }
+    
+    for(int i = 0; i < vectorSize; i++){
+        threads[i].join();
+    }
 }

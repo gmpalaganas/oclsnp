@@ -1,7 +1,7 @@
-#include "utils.hpp"
+#include "binary_reader.hpp"
 
 //Reverse the endianess of an integer
-int snp_utils::reverseEndianess(int smallEndian){
+int reverseEndianess(int smallEndian){
     int bigEndian;
 
     unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
@@ -14,7 +14,7 @@ int snp_utils::reverseEndianess(int smallEndian){
 }
 
 //Reverse the endianess of a character
-unsigned char snp_utils::reverseEndianess(unsigned char smallEndian){
+unsigned char reverseEndianess(unsigned char smallEndian){
     unsigned char bigEndian;
 
     unsigned char *bigEndianBytes = (unsigned char *)&bigEndian;
@@ -26,10 +26,10 @@ unsigned char snp_utils::reverseEndianess(unsigned char smallEndian){
     return bigEndian;
 }
 
-void snp_utils::readInt(std::ifstream &file, int *intBuffer){
+void readInt(std::ifstream &file, int *intBuffer){
     file.read(reinterpret_cast<char *>(intBuffer),sizeof(int));
 }
 
-void snp_utils::readChar(std::ifstream &file, unsigned char *charBuffer){
+void readChar(std::ifstream &file, unsigned char *charBuffer){
     file.read(reinterpret_cast<char *>(charBuffer),sizeof(char));
 }

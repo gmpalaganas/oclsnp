@@ -1,11 +1,9 @@
-__kernel void snpDetermineRules(int n, int m, __global float *configVector, __global float *spikingVector,
-        __global float *rules, __global float* lhs){
+__kernel void snpDetermineRules(int n, __global float *spikingVector, __global float *ruleMatches){
     
     int i = get_global_id(0);
 
     if( i < n ){
-        if( (configVector[(int)rules[i * 3] - 1] == lhs[i] || lhs[i] == 0)  && 
-            configVector[(int)rules[i * 3] - 1] + rules[i * 3 + 2] >= 0){
+        if( rules[i*3+2] ){
 
             spikingVector[i] = 1; 
 

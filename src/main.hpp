@@ -9,11 +9,15 @@
 #include <iterator>
 #include <algorithm>
 #include <ctime>
+#include <thread>
 
 #include <CL/cl.h>
+#include <re2/re2.h>
+#include <boost/lexical_cast.hpp>
 
 #include "snp/snp.hpp"
 #include "utils/array.hpp"
+#include "utils/regex.hpp"
 
 #define EXECUTE_FAILURE -1
 
@@ -49,19 +53,21 @@ void initSNPPostComputeKernel();
 void initSNPResetKernel();
 void initSNPSetStatesKernel();
 
-void printSNPContents();
-
 namespace gpu{
     void vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
     void vectorElemMult(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
     void vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int cols);
     void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector);
-    void snpDetermineRules(int n, int m,  float *configVector, float *spikingVector, float *rules, float *lhs);
+    void snpDetermineRules(int n, float *spikingVector, float *rules);
     void snpPostCompute(int n, int m,  float *rules, float *transitionVector);
     void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector);
     void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
             float* stateVector,  float* transitionVector);
 };
+
+
+void matchRuleRegex(std::string regex, std::string input, float* isMatch);
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize);
 
 //OpenCL variables
 cl_context clContext; 
@@ -104,7 +110,6 @@ cl_mem clNetGainBuffer;
 cl_mem clRulesBuffer;
 cl_mem clDelaysBuffer;
 cl_mem clTransitionBuffer;
-cl_mem clLHSBuffer;
 
 cl_mem clBufferA;
 cl_mem clBufferB;
@@ -128,6 +133,7 @@ float *netGainVector;
 float *rules;
 float *delays;
 float *transitionVector;
-float *lhs;
+
+std::string *regexs;
 
 std::ofstream outputFile;
