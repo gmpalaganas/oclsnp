@@ -31,11 +31,17 @@
 #define SNP_RESET_SRC            "kernels/snp_reset.cl"
 #define SNP_SET_STATES_SRC       "kernels/snp_set_states.cl"
 
+namespace programFlags{
+    enum ProgramFlags { SILENT };
+}
+
 inline void checkError(cl_int err, std::string msg, std::string fncName);
 inline void checkCLError(cl_int err, std::string msg, std::string fncName);
 inline void checkCLError(cl_int err, std::string msg, std::string fncName, cl_program program);
 inline std::string getCLError(cl_int errorCode);
 void cleanup();
+
+programFlags::ProgramFlags checkFlag(std::string flag);
 
 void initCL(int n, int m);
 

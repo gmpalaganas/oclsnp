@@ -2,6 +2,3 @@ src/test
 src/test_linear
 src/*.log.txt
 src/ocl_test_output.txt
-bin/*
-
-

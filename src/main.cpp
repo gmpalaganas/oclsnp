@@ -6,6 +6,7 @@ double runtime = 0;
 // and number of steps
 int main(int argc, char **argv){
     
+    std::vector<programFlags::ProgramFlags> flags;
     std::stringstream outputStream;
 
     if(argc == 3){
@@ -14,12 +15,14 @@ int main(int argc, char **argv){
         std::cout << "Usage: ./oclsnp <input_binary_file> [output_file]" << std::endl;
         std::cout << "I.e ./oclsnp ../inputs/2input_sort.bin outputs/2input_sort_out.txt" << std::endl;
         exit(1);
+    }else{
+        for(int i = 3; i < argc; i++)
+            flags.push_back(checkFlag(argv[i]));
     }
 
     clErr = snp.loadSNPFromFile(argv[1]);
     checkError(clErr, "Invalid Binary file", __FUNCTION__);
 
-    snp.printSNPContents();
 
     int n = snp.ruleCount;
     int m = snp.neuronCount;
@@ -54,8 +57,6 @@ int main(int argc, char **argv){
         rules[index + 2] = -(snp.ruleConsumedSpikes[i]);
     }
 
-    printVectorAs2DArray(rules, n, 3);
-
     for(int i = 0; i < n; i++){
         for(int j = 1; j < m + 1; j++){
             if(snp.synapseMatrix[snp.ruleIds[i]][j] == 1)
@@ -63,11 +64,17 @@ int main(int argc, char **argv){
         } 
     }
 
-    printVectorAs2DArray(transitionVector, n, m);
             
     for(int i = 0; i < n; i++){
         regexs[i] = expandRegex(snp.getRuleRegex(i));
     }
+
+    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
+        snp.printSNPContents();
+        printVectorAs2DArray(rules, n, 3);
+        printVectorAs2DArray(transitionVector, n, m);
+    }
+
 
     int step = 1;
 
@@ -75,12 +82,6 @@ int main(int argc, char **argv){
     do{
     
         matchRulesRegex(regexs, rules, configVector, spikingVector, n);
-        std::cout << "Spiking Vector\n";
-        printArray(spikingVector, n);
-        std::cout << "Config Vector\n";
-        printArray(configVector, m);
-        std::cout << "Rules Vector\n";
-        printVectorAs2DArray(rules, n, 3);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -123,8 +124,12 @@ int main(int argc, char **argv){
     }
     
     outputStream << "Execution time: " << runtime << std::endl;
-
-    std::cout << outputStream.str();
+    
+    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
+        std::cout << outputStream.str();
+    }else{
+        std::cout << "Execution time: " << runtime << std::endl;
+    }
 
     if(outputFile){
         outputFile << outputStream.str();
@@ -258,7 +263,6 @@ inline std::string getCLError(cl_int err){
 
 //Release OpenCL variables and delete dynamically allocated variables
 void cleanup(){
-    std::cout << "Goodbye" << std::endl;
     clReleaseCommandQueue(clCommandQueue);
     clReleaseContext(clContext);
 
@@ -304,6 +308,13 @@ void cleanup(){
     if(outputFile)
         outputFile.close();
 
+}
+
+programFlags::ProgramFlags checkFlag(std::string flag){
+    programFlags::ProgramFlags progFlag;
+    if(flag == "--silent")
+        progFlag = programFlags::ProgramFlags::SILENT;
+    return progFlag;
 }
 
 //Initialize OpenCL variables i.e. Platform IDs and Device IDs
