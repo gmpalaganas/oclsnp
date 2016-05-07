@@ -750,6 +750,8 @@ void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
     checkCLError(clErr, "Unable to set kernel param 2", __FUNCTION__);
     clErr = clSetKernelArg(snpPostComputeKernel,3,sizeof(cl_mem),&clTransitionBuffer);
     checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
+    clErr = clSetKernelArg(snpPostComputeKernel,4,n * sizeof(float),NULL);
+    checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
     std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpPostComputeKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
