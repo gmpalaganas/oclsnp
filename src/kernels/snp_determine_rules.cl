@@ -3,7 +3,7 @@ __kernel void snpDetermineRules(int n, __global float *spikingVector, __global f
     int i = get_global_id(0);
 
     if( i < n ){
-        if( rules[i*3+2] ){
+        if( ruleMatches[i] ){
 
             spikingVector[i] = 1; 
 
