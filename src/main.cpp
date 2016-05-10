@@ -1,10 +1,9 @@
 #include "main.hpp"
 
+double runtime = 0;
+
 // To be configured to accept input file name
 // and number of steps
-
-std::chrono::microseconds runtime;
-
 int main(int argc, char **argv){
     
     std::vector<programFlags::ProgramFlags> flags;
@@ -82,11 +81,7 @@ int main(int argc, char **argv){
     //Simulation Proper
     do{
     
-        std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
         matchRulesRegex(regexs, rules, configVector, spikingVector, n);
-        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-
-        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -128,12 +123,12 @@ int main(int argc, char **argv){
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
     
-    outputStream << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
+    outputStream << "Execution time: " << runtime << std::endl;
     
     if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
         std::cout << outputStream.str();
     }else{
-        std::cout << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
+        std::cout << "Execution time: " << runtime << std::endl;
     }
 
     if(outputFile){
@@ -593,12 +588,12 @@ void gpu::vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vec
 
     size_t globalSize = vectorSize;
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorAddKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = std::clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, vectorSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -634,12 +629,12 @@ void gpu::vectorElemMult(float *vectorA, float *vectorB, float *outputVector, in
 
     size_t globalSize = vectorSize;
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorElemMultKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = std::clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferC, CL_TRUE, 0, vectorSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -671,12 +666,12 @@ void gpu::vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int 
     clErr = clSetKernelArg(vectorSelectiveAddKernel,3,sizeof(cl_int),&cols);
     checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = std::clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, vectorSelectiveAddKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = std::clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clBufferB, CL_TRUE, 0, globalSize * sizeof(float), outputVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -710,12 +705,12 @@ void gpu::snpComputeNetGain(int n, int m, float *stateVector, float *lossVector,
     clErr = clSetKernelArg(snpComputeNetGainKernel,5,sizeof(cl_mem),&clNetGainBuffer);
     checkCLError(clErr, "Unable to set kernel param 5", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpComputeNetGainKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clNetGainBuffer, CL_TRUE, 0, m * sizeof(float), netGainVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -737,12 +732,12 @@ void gpu::snpDetermineRules(int n, float *spikingVector, float *rules){
     clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clRulesBuffer);
     checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpDetermineRulesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clSpikingBuffer, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
@@ -769,12 +764,12 @@ void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
     clErr = clSetKernelArg(snpPostComputeKernel,4,n * sizeof(float),NULL);
     checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpPostComputeKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clRulesBuffer, CL_TRUE, 0, n * 3 * sizeof(float), rules, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);
@@ -799,12 +794,12 @@ void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *n
     clErr = clSetKernelArg(snpResetKernel,4,sizeof(cl_mem),&clNetGainBuffer);
     checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpResetKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clLossBuffer, CL_TRUE, 0, globalSize * sizeof(float), lossVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);
@@ -855,12 +850,12 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     clErr = clSetKernelArg(snpSetStatesKernel,8,sizeof(cl_mem),&clTransitionBuffer);
     checkCLError(clErr, "Unable to set kernel param 8", __FUNCTION__);
 
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+    std::clock_t begin = clock();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpSetStatesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
     checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::clock_t end = clock();
 
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    runtime += double(end - begin) / CLOCKS_PER_SEC;
 
     clEnqueueReadBuffer(clCommandQueue, clConfigBuffer, CL_TRUE, 0, m * sizeof(float), configVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer A", __FUNCTION__);

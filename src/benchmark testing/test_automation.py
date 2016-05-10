@@ -19,7 +19,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f2.write('{0:.10f}'.format(float(time)))
     f2.write(',')
@@ -31,7 +31,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f4.write('{0:.10f}'.format(float(time)))
     f4.write(',')
@@ -43,7 +43,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f8.write('{0:.10f}'.format(float(time)))
     f8.write(',')
@@ -55,7 +55,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f16.write('{0:.10f}'.format(float(time)))
     f16.write(',')
@@ -77,7 +77,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f2.write('{0:.10f}'.format(float(time)))
     f2.write(',')
@@ -89,7 +89,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f4.write('{0:.10f}'.format(float(time)))
     f4.write(',')
@@ -101,7 +101,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f8.write('{0:.10f}'.format(float(time)))
     f8.write(',')
@@ -113,7 +113,7 @@ for i in range(0,30):
     out, err = proc.communicate()
 
     holder, holder2, time = out.partition('Execution time: ')
-    time, holder2, holder = time.partition('ms') 
+    time, holder2, holder = time.partition('\n') 
 
     f16.write('{0:.10f}'.format(float(time)))
     f16.write(',')
