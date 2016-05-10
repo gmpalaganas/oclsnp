@@ -8,8 +8,8 @@
 #include <sstream>
 #include <iterator>
 #include <algorithm>
-#include <ctime>
 #include <thread>
+#include <chrono>
 
 #include <CL/cl.h>
 #include <re2/re2.h>
