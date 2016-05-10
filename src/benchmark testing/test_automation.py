@@ -21,7 +21,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f2.write('{0:.10f}'.format(float(time)))
+    f2.write('{0:.10f}'.format(float(time.upper())))
     f2.write(',')
 
 print("Running Parallel 4 input")
@@ -33,7 +33,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f4.write('{0:.10f}'.format(float(time)))
+    f4.write('{0:.10f}'.format(float(time.upper())))
     f4.write(',')
 
 print("Running Parallel 8 input")
@@ -45,7 +45,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f8.write('{0:.10f}'.format(float(time)))
+    f8.write('{0:.10f}'.format(float(time.upper())))
     f8.write(',')
 
 print("Running Parallel 16 input")
@@ -57,7 +57,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f16.write('{0:.10f}'.format(float(time)))
+    f16.write('{0:.10f}'.format(float(time.upper())))
     f16.write(',')
 
 f2 = open('lin_test_2_output.txt', 'w')
@@ -79,7 +79,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f2.write('{0:.10f}'.format(float(time)))
+    f2.write('{0:.10f}'.format(float(time.upper())))
     f2.write(',')
 
 print("Running Linear 4 input")
@@ -91,7 +91,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f4.write('{0:.10f}'.format(float(time)))
+    f4.write('{0:.10f}'.format(float(time.upper())))
     f4.write(',')
 
 print("Running Linear 8 input")
@@ -103,7 +103,7 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f8.write('{0:.10f}'.format(float(time)))
+    f8.write('{0:.10f}'.format(float(time.upper())))
     f8.write(',')
 
 print("Running Linear 16 input")
@@ -115,5 +115,5 @@ for i in range(0,30):
     holder, holder2, time = out.partition('Execution time: ')
     time, holder2, holder = time.partition('ms') 
 
-    f16.write('{0:.10f}'.format(float(time)))
+    f16.write('{0:.10f}'.format(float(time.upper())))
     f16.write(',')

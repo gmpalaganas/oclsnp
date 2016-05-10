@@ -149,7 +149,6 @@ inline void checkError(int err, std::string msg, std::string fncName){
 
 
 void cleanup(){
-    std::cout << "Goodbye" << std::endl;
     delete[] configVector;
     delete[] spikingVector;
     delete[] stateVector;
