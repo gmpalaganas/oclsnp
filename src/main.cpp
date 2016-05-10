@@ -766,6 +766,8 @@ void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
     checkCLError(clErr, "Unable to set kernel param 2", __FUNCTION__);
     clErr = clSetKernelArg(snpPostComputeKernel,3,sizeof(cl_mem),&clTransitionBuffer);
     checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
+    clErr = clSetKernelArg(snpPostComputeKernel,4,n * sizeof(float),NULL);
+    checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
 
     std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpPostComputeKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
@@ -852,6 +854,8 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     checkCLError(clErr, "Unable to set kernel param 7", __FUNCTION__);
     clErr = clSetKernelArg(snpSetStatesKernel,8,sizeof(cl_mem),&clTransitionBuffer);
     checkCLError(clErr, "Unable to set kernel param 8", __FUNCTION__);
+    clErr = clSetKernelArg(snpSetStatesKernel,9,n * 3 * sizeof(float),NULL);
+    checkCLError(clErr, "Unable to set kernel param 9", __FUNCTION__);
 
     std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpSetStatesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
