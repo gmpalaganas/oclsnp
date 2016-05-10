@@ -1,6 +1,6 @@
 #include "main_linear.hpp"
 
-double runtime = 0;
+std::chrono::microseconds runtime;
 
 // To be configured to accept input file name
 // and number of steps
@@ -36,6 +36,7 @@ int main(int argc, char **argv){
     delays = new float[n]();
     transitionVector = new float[(m + 1) * n]();
     lhs = new float[n]();
+    regexs = new std::string[n]();
 
     //Copy snp initial config to configVector
     copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
@@ -60,6 +61,11 @@ int main(int argc, char **argv){
                 transitionVector[i * (m + 1) + j] = snp.ruleProducedSpikes[i];
         }
     }
+
+    for(int i = 0; i < n; i++){
+        regexs[i] = expandRegex(snp.getRuleRegex(i));
+    }
+
     
     for(int i = 0; i < n; i++)
         lhs[i] = snp.getRuleRegexCode(i);
@@ -69,7 +75,12 @@ int main(int argc, char **argv){
     //Simulation Proper
     do{
 
-        snpDetermineRules(n, m, configVector, spikingVector, rules, lhs);
+        std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+        matchRulesRegex(regexs, rules, configVector, spikingVector, n);
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -111,7 +122,7 @@ int main(int argc, char **argv){
         outputStream << "Spikes: " << configVector[i] << std::endl;
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
-    outputStream << "Execution time: " << runtime << std::endl;
+    outputStream << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
 
     std::cout << outputStream.str();
 
@@ -168,43 +179,43 @@ bool areRulesApplicable(float* spikingVector, int n){
 }
 
 void vectorAdd(float *vectorA, float *vectorB, float *outputVector, int vectorSize){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < vectorSize; i++)
         outputVector[i] = vectorA[i] + vectorB[i];
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void vectorElemMult(float *vectorA, float *vectorB, float *outputVector, int vectorSize){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < vectorSize; i++)
         outputVector[i] = vectorA[i] * vectorB[i];
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int cols){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < cols; i++){
         for(int j = 0; j < rows; j++){
             if(vectorA[j * (cols + 1)] == 1)
                 outputVector[i] += vectorA[j * (cols +1) + (i+1)];
         }
     }
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < m; i++)
         netGainVector[i] = gainVector[i] * stateVector[i] + lossVector[i]; 
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void snpDetermineRules(int n, int m,  float *configVector, float *spikingVector, float *rules, float *lhs){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < n; i++){
         if((configVector[ (int)rules[i * 3] - 1 ] == lhs[i] || lhs[i] == 0) &&
             configVector[(int)rules[i * 3] - 1] + rules[i * 3 + 2] >= 0){
@@ -215,37 +226,37 @@ void snpDetermineRules(int n, int m,  float *configVector, float *spikingVector,
             spikingVector[i] = 0;
         }
     }
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void snpPostCompute(int n, int m,  float *rules, float *transitionVector){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < n;  i++){
         if(rules[i * 3 + 1] > -1)
             rules[i * 3 + 1] -= 1;
         transitionVector[i * (m + 1)] = 0;
     }
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector){
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < m; i++){
         lossVector[i] = 0;
         gainVector[i] = 0;
         netGainVector[i] = 0;
     }
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 }
 
 
 void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
         float* stateVector,  float* transitionVector){
 
-    std::clock_t begin = clock();
+    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < n; i++){
         int index = (int)rules[i * 3] - 1;
 
@@ -262,7 +273,28 @@ void snpSetStates(int n, int m,  float *configVector, float *spikingVector, floa
             stateVector[(int)rules[i * m]] = 1;
         }
     }
-    std::clock_t end = clock();
-    runtime += double(end - begin) / CLOCKS_PER_SEC;
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);;
 
+}
+
+void matchRuleRegex(std::string regex, std::string str, float* isMatch){
+    re2::StringPiece input(str);
+    *(isMatch) = re2::RE2::FullMatch(input,regex);
+}
+
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize){
+
+    std::thread threads[vectorSize];
+
+    for(int i = 0; i < vectorSize; i++){
+        std::string expandedRegex = regexVector[i];
+        std::string spikeString = expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
+        float *ruleMarkPtr = spikingVector + i;
+        threads[i] = std::thread(matchRuleRegex, expandedRegex, spikeString, ruleMarkPtr);
+    }
+    
+    for(int i = 0; i < vectorSize; i++){
+        threads[i].join();
+    }
 }

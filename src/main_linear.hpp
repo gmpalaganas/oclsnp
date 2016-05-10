@@ -10,12 +10,17 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
-#include <ctime>
 #include <regex>
 #include <boost/regex.hpp>
+#include <thread>
+#include <chrono>
+
+#include <re2/re2.h>
+#include <boost/lexical_cast.hpp>
 
 #include "snp/snp.hpp"
 #include "utils/array.hpp"
+#include "utils/regex.hpp"
 
 #define EXECUTE_FAILURE -1
 
@@ -34,6 +39,8 @@ void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGai
 void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
         float* stateVector,  float* transitionVector);
 
+void matchRuleRegex(std::string regex, std::string input, float* isMatch);
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize);
 
 SNP snp;
 
@@ -47,5 +54,7 @@ float *rules;
 float *delays;
 float *transitionVector;
 float *lhs;
+
+std::string *regexs;
 
 std::ofstream outputFile;
