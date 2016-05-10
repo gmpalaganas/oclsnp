@@ -122,7 +122,7 @@ int main(int argc, char **argv){
         outputStream << "Spikes: " << configVector[i] << std::endl;
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
-    outputStream << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
+    outputStream << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
 
     std::cout << outputStream.str();
 

@@ -128,12 +128,12 @@ int main(int argc, char **argv){
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
     
-    outputStream << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
+    outputStream << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
     
     if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
         std::cout << outputStream.str();
     }else{
-        std::cout << "Execution time: " << float(runtime.count()) / 1000 << " ms" << std::endl;
+        std::cout << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
     }
 
     if(outputFile){
