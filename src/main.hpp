@@ -10,11 +10,12 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <vector>
+#include <ctime>
 
 #include <CL/cl.h>
 #include <re2/re2.h>
 #include <boost/lexical_cast.hpp>
-
 #include "snp/snp.hpp"
 #include "utils/array.hpp"
 #include "utils/regex.hpp"
@@ -66,14 +67,16 @@ namespace gpu{
     void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector);
     void snpDetermineRules(int n, float *spikingVector, float *rules);
     void snpPostCompute(int n, int m,  float *rules, float *transitionVector);
-    void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector);
+    void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector, float *neuronFlags);
     void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
             float* stateVector,  float* transitionVector);
 };
 
 
-void matchRuleRegex(std::string regex, std::string input, float* isMatch);
-void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize);
+void matchRuleRegex(int threadId, std::string regex, std::string str, float* spikingVector, float* neuronFlag, float* rules);
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, float* neuronFlags,  int n);
+
+void getMemUsage(double& vmUsage, double& residentSet);
 
 //OpenCL variables
 cl_context clContext; 
@@ -116,6 +119,7 @@ cl_mem clNetGainBuffer;
 cl_mem clRulesBuffer;
 cl_mem clDelaysBuffer;
 cl_mem clTransitionBuffer;
+cl_mem clNeuronFlagsBuffer;
 
 cl_mem clBufferA;
 cl_mem clBufferB;
@@ -139,6 +143,8 @@ float *netGainVector;
 float *rules;
 float *delays;
 float *transitionVector;
+
+float *neuronFlags;
 
 std::string *regexs;
 

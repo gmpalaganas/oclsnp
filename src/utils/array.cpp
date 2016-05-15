@@ -40,3 +40,15 @@ void printVectorAs2DArray(float *array, int rows, int cols){
         }
     }
 }
+
+void print2DArray(int **array, int rows, int cols){
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            std::cout << array[i][j];
+            if(j < cols - 1)
+                std::cout << ", ";
+            else
+                std::cout << "\n";
+        }
+    }
+}

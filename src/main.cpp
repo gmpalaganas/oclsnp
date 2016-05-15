@@ -41,6 +41,7 @@ int main(int argc, char **argv){
     delays = new float[n]();
     transitionVector = new float[(m + 1) * n]();
     regexs = new std::string[n]();
+    neuronFlags = new float[m]();
 
 
     //Copy snp initial config to configVector
@@ -50,6 +51,7 @@ int main(int argc, char **argv){
     copyIntArrIntoFloatArr(snp.ruleDelays, delays, n);
 
     std::fill_n(stateVector, m, 1);
+    std::fill_n(neuronFlags, m, -1);
 
     for(int i = 0; i < n; i++){
         int index = i * 3;
@@ -65,16 +67,16 @@ int main(int argc, char **argv){
         } 
     }
 
-            
-    for(int i = 0; i < n; i++){
+            for(int i = 0; i < n; i++){
         regexs[i] = expandRegex(snp.getRuleRegex(i));
     }
 
-    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
-        snp.printSNPContents();
-        printVectorAs2DArray(rules, n, 3);
-        printVectorAs2DArray(transitionVector, n, m);
-    }
+    //if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
+        //snp.printSNPContents();
+        //printVectorAs2DArray(rules, n, 3);
+        //print2DArray(snp.synapseMatrix, m, m);
+        //printVectorAs2DArray(transitionVector, n, m);
+    //}
 
 
     int step = 1;
@@ -83,7 +85,7 @@ int main(int argc, char **argv){
     do{
     
         std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
-        matchRulesRegex(regexs, rules, configVector, spikingVector, n);
+        matchRulesRegex(regexs, rules, configVector, spikingVector, neuronFlags, n);
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
         runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
@@ -99,7 +101,7 @@ int main(int argc, char **argv){
         gpu::snpComputeNetGain(n, m, stateVector, lossVector, gainVector, netGainVector);
         gpu::vectorAdd(netGainVector,configVector,configVector,m);
         gpu::snpPostCompute(n, m, rules, transitionVector);
-        gpu::snpReset(n, m, lossVector, gainVector, netGainVector);
+        gpu::snpReset(n, m, lossVector, gainVector, netGainVector,neuronFlags);
 
 
         outputStream << "CHOSEN RULES" << std::endl;
@@ -128,12 +130,18 @@ int main(int argc, char **argv){
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
     
+    double vm;
+    double rss;
+    getMemUsage(vm, rss);
+
     outputStream << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+    outputStream << "Memory Usage: " << rss << " kb" << std::endl;
     
     if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
         std::cout << outputStream.str();
     }else{
         std::cout << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+        std::cout << "Memory Usage: " << rss << " kb" << std::endl;
     }
 
     if(outputFile){
@@ -196,9 +204,7 @@ inline std::string getCLError(cl_int err){
 
     switch(err){
         case 0: return "CL_SUCCESS";
-        case -1: return "CL_DEVICE_NOT_FOUND";
-        case -2: return "CL_DEVICE_NOT_AVAILABLE";
-        case -3: return "CL_COMPILER_NOT_AVAILABLE";
+        case -1: return "CL_DEVICE_NOT_FOUND"; case -2: return "CL_DEVICE_NOT_AVAILABLE"; case -3: return "CL_COMPILER_NOT_AVAILABLE";
         case -4: return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
         case -5: return "CL_OUT_OF_RESOURCES";
         case -6: return "CL_OUT_OF_HOST_MEMORY";
@@ -362,6 +368,9 @@ void initCL(int n, int m){
     checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 
     clTransitionBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * (m + 1) * sizeof(float), NULL, &clErr); 
+    checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
+
+    clNeuronFlagsBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m  * sizeof(float), NULL, &clErr); 
     checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 
 }
@@ -784,7 +793,7 @@ void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
 }
 
 
-void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector){
+void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector, float *neuronFlags){
 
     size_t globalSize = m;
 
@@ -798,6 +807,8 @@ void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *n
     checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
     clErr = clSetKernelArg(snpResetKernel,4,sizeof(cl_mem),&clNetGainBuffer);
     checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
+    clErr = clSetKernelArg(snpResetKernel,5,sizeof(cl_mem),&clNeuronFlagsBuffer);
+    checkCLError(clErr, "Unable to set kernel param 5", __FUNCTION__);
 
     std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpResetKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
@@ -811,6 +822,8 @@ void gpu::snpReset(int n, int m,  float *lossVector, float *gainVector, float *n
     clEnqueueReadBuffer(clCommandQueue, clGainBuffer, CL_TRUE, 0, globalSize * sizeof(float), gainVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer B", __FUNCTION__);
     clEnqueueReadBuffer(clCommandQueue, clNetGainBuffer, CL_TRUE, 0, globalSize * sizeof(float), netGainVector, 0, NULL, NULL); 
+    checkCLError(clErr, "Unable to enqueue read clBuffer C", __FUNCTION__);
+    clEnqueueReadBuffer(clCommandQueue, clNeuronFlagsBuffer, CL_TRUE, 0, m * sizeof(float), neuronFlags, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer C", __FUNCTION__);
 
 }
@@ -879,23 +892,74 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
 
 }
 
-void matchRuleRegex(std::string regex, std::string str, float* isMatch){
+void matchRuleRegex(int threadId, std::string regex, std::string str, float* spikingVector, float* neuronFlag, float* rules){
     re2::StringPiece input(str);
-    *(isMatch) = re2::RE2::FullMatch(input,regex);
+    int match = re2::RE2::FullMatch(input,regex);
+
+    if(match){
+        if(neuronFlag[(int)rules[3 * threadId] - 1] > -1){
+            srand((unsigned)std::time(0));
+            int rand = (std::rand());
+            if(rand % 2 == 0){
+                spikingVector[(int)(neuronFlag[(int)rules[3 * threadId] - 1])] = 0; 
+                spikingVector[threadId] = 1;
+                neuronFlag[(int)rules[3 * threadId] - 1] = threadId; 
+            }else
+                spikingVector[threadId] = 0;
+        }else{
+            neuronFlag[(int)rules[3 * threadId] - 1] = threadId;
+            spikingVector[threadId] = 1;
+        }
+    }else{
+        spikingVector[threadId] = 0;
+    }
 }
 
-void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize){
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, float* neuronFlags,  int n){
 
-    std::thread threads[vectorSize];
+    std::thread threads[n];
 
-    for(int i = 0; i < vectorSize; i++){
+    for(int i = 0; i < n; i++){
         std::string expandedRegex = regexVector[i];
         std::string spikeString = expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
-        float *ruleMarkPtr = spikingVector + i;
-        threads[i] = std::thread(matchRuleRegex, expandedRegex, spikeString, ruleMarkPtr);
+        threads[i] = std::thread(matchRuleRegex, i, expandedRegex, spikeString, spikingVector, neuronFlags, rules);
     }
     
-    for(int i = 0; i < vectorSize; i++){
+    for(int i = 0; i < n; i++){
         threads[i].join();
     }
+}
+
+
+void getMemUsage(double& vmUsage, double& residentSet){
+
+    vmUsage     = 0.0;
+    residentSet = 0.0;
+
+    // 'file' stat seems to give the most reliable results
+    //
+    std::ifstream stat_stream("/proc/self/stat",std::ios_base::in);
+
+    // dummy vars for leading entries in stat that we don't care about
+    //
+    std::string pid, comm, state, ppid, pgrp, session, tty_nr;
+    std::string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+    std::string utime, stime, cutime, cstime, priority, nice;
+    std::string O, itrealvalue, starttime;
+
+    // the two fields we want
+    //
+    unsigned long vsize;
+    long rss;
+
+    stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+        >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+        >> utime >> stime >> cutime >> cstime >> priority >> nice
+        >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+
+    stat_stream.close();
+
+    long pageSizeKb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+    vmUsage     = vsize / 1024.0;
+    residentSet = rss * pageSizeKb;
 }
