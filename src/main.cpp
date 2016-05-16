@@ -894,25 +894,7 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
 
 void matchRuleRegex(int threadId, std::string regex, std::string str, float* spikingVector, float* neuronFlag, float* rules){
     re2::StringPiece input(str);
-    int match = re2::RE2::FullMatch(input,regex);
-
-    if(match){
-        if(neuronFlag[(int)rules[3 * threadId] - 1] > -1){
-            srand((unsigned)std::time(0));
-            int rand = (std::rand());
-            if(rand % 2 == 0){
-                spikingVector[(int)(neuronFlag[(int)rules[3 * threadId] - 1])] = 0; 
-                spikingVector[threadId] = 1;
-                neuronFlag[(int)rules[3 * threadId] - 1] = threadId; 
-            }else
-                spikingVector[threadId] = 0;
-        }else{
-            neuronFlag[(int)rules[3 * threadId] - 1] = threadId;
-            spikingVector[threadId] = 1;
-        }
-    }else{
-        spikingVector[threadId] = 0;
-    }
+    spikingVector[threadId] = re2::RE2::FullMatch(input,regex);
 }
 
 void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, float* neuronFlags,  int n){
