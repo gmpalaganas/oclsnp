@@ -67,9 +67,6 @@ int main(int argc, char **argv){
     }
 
     
-    for(int i = 0; i < n; i++)
-        lhs[i] = snp.getRuleRegexCode(i);
-    
     int step = 1;
 
     //Simulation Proper
@@ -80,7 +77,6 @@ int main(int argc, char **argv){
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
         runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -122,7 +118,21 @@ int main(int argc, char **argv){
         outputStream << "Spikes: " << configVector[i] << std::endl;
         outputStream << "State: " << stateVector[i] << std::endl << std::endl;
     }
+ 
+    double vm;
+    double rss;
+    getMemUsage(vm, rss);
+
     outputStream << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+    outputStream << "Memory Usage: " << rss << " kb" << std::endl;
+
+    std::cout << outputStream.str();
+    std::cout << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+    std::cout << "Memory Usage: " << rss << " kb" << std::endl;
+
+    if(outputFile){
+        outputFile << outputStream.str();
+    }
 
     std::cout << outputStream.str();
 
@@ -296,4 +306,37 @@ void matchRulesRegex(std::string *regexVector, float* rules, float* configVector
     for(int i = 0; i < vectorSize; i++){
         threads[i].join();
     }
+}
+
+void getMemUsage(double& vmUsage, double& residentSet){
+
+    vmUsage     = 0.0;
+    residentSet = 0.0;
+
+    // 'file' stat seems to give the most reliable results
+    //
+    std::ifstream stat_stream("/proc/self/stat",std::ios_base::in);
+
+    // dummy vars for leading entries in stat that we don't care about
+    //
+    std::string pid, comm, state, ppid, pgrp, session, tty_nr;
+    std::string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+    std::string utime, stime, cutime, cstime, priority, nice;
+    std::string O, itrealvalue, starttime;
+
+    // the two fields we want
+    //
+    unsigned long vsize;
+    long rss;
+
+    stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+        >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+        >> utime >> stime >> cutime >> cstime >> priority >> nice
+        >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+
+    stat_stream.close();
+
+    long pageSizeKb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
+    vmUsage     = vsize / 1024.0;
+    residentSet = rss * pageSizeKb;
 }

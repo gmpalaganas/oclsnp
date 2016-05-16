@@ -42,6 +42,8 @@ void snpSetStates(int n, int m,  float *configVector, float *spikingVector, floa
 void matchRuleRegex(std::string regex, std::string input, float* isMatch);
 void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize);
 
+void getMemUsage(double& vmUsage, double& residentSet);
+
 SNP snp;
 
 float *configVector;
