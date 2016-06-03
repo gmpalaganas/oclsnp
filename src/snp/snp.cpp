@@ -272,6 +272,47 @@ int SNP::getRuleRegexCode(int ruleId){
 
 }
 
+void SNP::getRuleRegexRepr(int ruleId, regex_repr *repr){
+    std::string regex = getRuleRegex(ruleId);
+    regex = expandRegex(regex);
+
+    float k = 0;
+    float j = 0;
+    
+    for(int i = 0; i < regex.length(); i++){
+        switch(regex[i]){
+            case 'a':
+                k++;
+                break;
+            case '(':
+                i++;
+                while(regex[i] != ')'){
+                    j++;
+                    i++;
+                }
+                break;
+            case '+':
+                if(k == 1.0f){
+                    k = -1.0f;
+                    j = 1.0f;
+                }else
+                    k = -((2 * k) + 1);
+                break;
+            case '*':
+                if(k == 1.0f){
+                    k = 0.0f;
+                    j = 1.0f;
+                }else
+                    k = -(2 * k);
+                break;
+        }
+    }
+
+    repr->k = k;
+    repr->j = j;
+
+}
+
 std::string SNP::getRuleRegex(int ruleId){
     std::string regex = (ruleRegexs[ruleId].length() > 0)?
         ruleRegexs[ruleId]:

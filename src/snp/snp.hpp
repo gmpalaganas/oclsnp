@@ -1,6 +1,7 @@
 
 #include "regex_tree.hpp" 
 #include "binary_reader.hpp"
+#include "regex.hpp"
 
 #include <string>
 #include <bitset>
@@ -11,6 +12,13 @@
 #include <regex>
 #include <re2/re2.h>
 #include <boost/lexical_cast.hpp>
+
+
+typedef struct {
+    float k;
+    float j;
+} regex_repr;
+
 
 class SNP{
     public:
@@ -36,6 +44,7 @@ class SNP{
         void printSNPContents();
 
         int getRuleRegexCode(int ruleId);
+        void getRuleRegexRepr(int ruleId, regex_repr *repr);
         std::string getRuleRegex(int ruleId);
         std::string getRule(int ruleId);
 
