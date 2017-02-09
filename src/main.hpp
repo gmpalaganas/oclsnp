@@ -15,11 +15,10 @@
 
 #include <CL/cl.h>
 #include <boost/lexical_cast.hpp>
-#include "snp/snp.hpp"
-#include "utils/array.hpp"
-#include "utils/regex.hpp"
-
-#define EXECUTE_FAILURE -1
+#include <snp.hpp>
+#include <array.hpp>
+#include <regex.hpp>
+#include <opencl_error.hpp>
 
 #define VECTOR_ADD_SRC             "kernels/vector_add.cl"
 #define VECTOR_ELEM_MULT_SRC       "kernels/vector_elem_mult.cl"
@@ -35,10 +34,6 @@ namespace programFlags{
     enum ProgramFlags { SILENT };
 }
 
-inline void checkError(cl_int err, std::string msg, std::string fncName);
-inline void checkCLError(cl_int err, std::string msg, std::string fncName);
-inline void checkCLError(cl_int err, std::string msg, std::string fncName, cl_program program);
-inline std::string getCLError(cl_int errorCode);
 void cleanup();
 
 programFlags::ProgramFlags checkFlag(std::string flag);
