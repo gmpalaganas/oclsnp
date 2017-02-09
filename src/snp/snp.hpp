@@ -1,7 +1,7 @@
 
-#include "regex_tree.hpp" 
-#include "binary_reader.hpp"
-#include "regex.hpp"
+#include <regex_tree.hpp> 
+#include <binary_reader.hpp>
+#include <regex.hpp>
 
 #include <string>
 #include <bitset>

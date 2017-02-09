@@ -50,7 +50,7 @@ string RegexTree::decode(string encoded){
     stringstream ss;    
 
     node* cur_node = root;
-    for(int i = 0; i < encoded.length(); i++){
+    for(size_t i = 0; i < encoded.length(); i++){
 
         if(cur_node->left == NULL && cur_node->right == NULL)
             return ss.str(); 
