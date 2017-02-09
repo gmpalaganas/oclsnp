@@ -5,6 +5,8 @@
  * Used to decode encoded regex in binary file
  */
 
+using namespace std;
+
 node::node(char val, node* l, node* r): value(val), left(l), right(r) { }
 
 node::node(char val): value(val) {
@@ -44,8 +46,8 @@ node* RegexTree::get_root(){
     return root;
 }
 
-std::string RegexTree::decode(std::string encoded){
-    std::stringstream ss;    
+string RegexTree::decode(string encoded){
+    stringstream ss;    
 
     node* cur_node = root;
     for(int i = 0; i < encoded.length(); i++){

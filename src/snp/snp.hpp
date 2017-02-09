@@ -40,6 +40,7 @@ class SNP{
         std::string *neuronLabels;
         int **synapseMatrix = NULL;
 
+        int loadSNPFromFile(std::ifstream *input);
         int loadSNPFromFile(std::string fileName);
         void printSNPContents();
 

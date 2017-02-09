@@ -1,11 +1,13 @@
 #include "array.hpp"
 
-void copyArray(float *source, float *destination, int size){
+using namespace std;
+
+void utils::copyArray(float *source, float *destination, int size){
     for(int i = 0; i < size; i++)
         destination[i] = source[i];
 }
 
-void convertMatrixToVector(float **matrix, float *vector, int rows, int cols){
+void utils::convertMatrixToVector(float **matrix, float *vector, int rows, int cols){
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; i++){
             int index = (i * cols) + j;
@@ -14,41 +16,41 @@ void convertMatrixToVector(float **matrix, float *vector, int rows, int cols){
     }
 }
 
-void copyIntArrIntoFloatArr(int *source, float *destination, int size){
+void utils::copyIntArrIntoFloatArr(int *source, float *destination, int size){
     for(int i = 0; i < size; i++)
         destination[i] = (float)source[i];
 }
 
-void printArray(float *array, int n){
-    std::cout << "[ ";
+void utils::printArray(float *array, int n){
+    cout << "[ ";
     for(int i = 0; i < n; i++){
-        std::cout << array[i];
+        cout << array[i];
         if(i < n - 1 )
-            std::cout << ", ";
+            cout << ", ";
     }
-    std::cout << " ]\n";
+    cout << " ]\n";
 }
 
-void printVectorAs2DArray(float *array, int rows, int cols){
+void utils::printVectorAs2DArray(float *array, int rows, int cols){
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
-            std::cout << array[i * cols + j];
+            cout << array[i * cols + j];
             if(j < cols - 1)
-                std::cout << ", ";
+                cout << ", ";
             else
-                std::cout << "\n";
+                cout << "\n";
         }
     }
 }
 
-void print2DArray(int **array, int rows, int cols){
+void utils::print2DArray(int **array, int rows, int cols){
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
-            std::cout << array[i][j];
+            cout << array[i][j];
             if(j < cols - 1)
-                std::cout << ", ";
+                cout << ", ";
             else
-                std::cout << "\n";
+                cout << "\n";
         }
     }
 }

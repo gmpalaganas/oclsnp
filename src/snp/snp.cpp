@@ -5,6 +5,8 @@
 
 #include "snp.hpp"
 
+using namespace std;
+
 SNP::SNP(){
     regexTree::construct_tree(tree);
 }
@@ -22,132 +24,131 @@ SNP::~SNP(){
     destroyInputSpikeTrain();
 }
 
-int SNP::loadSNPFromFile(std::string fileName){
-    std::ifstream input(fileName, std::ios::binary);
+int SNP::loadSNPFromFile(ifstream *input){
 
     if(!input) return -1;
 
-    input.seekg(0, std::ios::end);
+    input->seekg(0, ios::end);
 
     int intBuffer;
     unsigned char charBuffer;
 
-    input.seekg(0, std::ios::beg);
-    
+    input->seekg(0, ios::beg);
+
     //Read Header
     for(int i = 0; i < 4; i++){
-        readChar(input,&charBuffer);
+        utils::readChar(input,&charBuffer);
     }
 
     //Read Sub-header
-    readInt(input,&intBuffer);
-    ruleCount = reverseEndianess(intBuffer);
+    utils::readInt(input,&intBuffer);
+    ruleCount = utils::reverseEndianess(intBuffer);
 
-    readInt(input,&intBuffer);
-    neuronCount = reverseEndianess(intBuffer);
+    utils::readInt(input,&intBuffer);
+    neuronCount = utils::reverseEndianess(intBuffer);
 
     initConfig = new int[neuronCount];
     for(int i = 0; i < neuronCount; i++){
-        readInt(input, &intBuffer);
-        initConfig[i] = reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        initConfig[i] = utils::reverseEndianess(intBuffer);
     }
 
-    readInt(input, &intBuffer);
+    utils::readInt(input, &intBuffer);
     inputSpikeTrainLen = intBuffer;
-    
+
     if(inputSpikeTrainLen > 0){
         inputSpikeTrainSteps = new int[inputSpikeTrainLen];
         inputSpikeTrainSpikes = new int[inputSpikeTrainLen];
     }
 
     for(int i = 0; i < inputSpikeTrainLen; i++){
-        readInt(input, &intBuffer);
-        inputSpikeTrainSteps[i] = reverseEndianess(intBuffer);
-        readInt(input, &intBuffer);
-        inputSpikeTrainSpikes[i] = reverseEndianess(intBuffer);
- 
+        utils::readInt(input, &intBuffer);
+        inputSpikeTrainSteps[i] = utils::reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        inputSpikeTrainSpikes[i] = utils::reverseEndianess(intBuffer);
+
         int maxStep = inputSpikeTrainSteps[0];
         inputSpikeTrain = new int[maxStep];
 
         for(int i = 0; i < maxStep; i++){
             inputSpikeTrain[inputSpikeTrainSteps[i]] = inputSpikeTrainSpikes[i];
-            std::cout << i << std::endl;
+            cout << i << endl;
         }
     }
 
     ruleIds = new int[ruleCount];
-   
+
     //Read Rules
     for(int i = 0; i < ruleCount; i++){
-        readInt(input, &intBuffer);
-        ruleIds[i] = reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        ruleIds[i] = utils::reverseEndianess(intBuffer);
     }
 
-    ruleRegexs = new std::string[ruleCount];
+    ruleRegexs = new string[ruleCount];
     ruleConsumedSpikes = new int[ruleCount];
     ruleProducedSpikes = new int[ruleCount];
     ruleDelays = new int[ruleCount];
 
     for(int i = 0; i < ruleCount; i++){
-        std::string decoded;
-        readInt(input, &intBuffer);
-        int len = reverseEndianess(intBuffer);
+        string decoded;
+        utils::readInt(input, &intBuffer);
+        int len = utils::reverseEndianess(intBuffer);
         int nBytes = (int)(ceil((double)len/8));
         if(nBytes == 0){
-            input.ignore(1);
+            input->ignore(1);
             decoded = "NONE";
         }else{
-            std::string bits;
+            string bits;
 
             for(int j = 0; j < nBytes; j++){
-                readChar(input, &charBuffer);
-                bits += std::bitset<8>(charBuffer).to_string();
+                utils::readChar(input, &charBuffer);
+                bits += bitset<8>(charBuffer).to_string();
             }
 
             int offset = bits.length() - len;
             decoded = tree.decode(bits.substr(offset,len));
         }
 
-        readInt(input, &intBuffer);
-        
+        utils::readInt(input, &intBuffer);
+
         ruleRegexs[i] = decoded;
-        ruleConsumedSpikes[i] = reverseEndianess(intBuffer);
+        ruleConsumedSpikes[i] = utils::reverseEndianess(intBuffer);
     }
 
     for(int i = 0; i < ruleCount; i++){
-        readInt(input, &intBuffer);
-        ruleProducedSpikes[i] = reverseEndianess(intBuffer);
-        readInt(input, &intBuffer);
-        ruleDelays[i] = reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        ruleProducedSpikes[i] = utils::reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        ruleDelays[i] = utils::reverseEndianess(intBuffer);
     }
 
     //Read neuron Labels
-    neuronLabels = new std::string[neuronCount];
+    neuronLabels = new string[neuronCount];
 
     for(int i = 0; i < neuronCount; i++){
-        readInt(input, &intBuffer);
-        int labelLen = reverseEndianess(intBuffer);
+        utils::readInt(input, &intBuffer);
+        int labelLen = utils::reverseEndianess(intBuffer);
         for(int j = 0; j < labelLen; j++)
-            neuronLabels[i] += input.get();
+            neuronLabels[i] += input->get();
     }
-    
+
     //Read synapses as graph adjacency matrix
     int matrixSize = (neuronCount + 1) * (neuronCount + 1);
 
     int nBytes = (int)(ceil((double)matrixSize / 8));
 
-    std::string linearMatrix;
+    string linearMatrix;
 
     for(int i = 0; i < nBytes; i++){
-        readChar(input,&charBuffer);
-        linearMatrix += std::bitset<8>(charBuffer).to_string();
+        utils::readChar(input,&charBuffer);
+        linearMatrix += bitset<8>(charBuffer).to_string();
     }
 
     int offset = linearMatrix.length() - matrixSize;
     linearMatrix = linearMatrix.substr(offset,matrixSize);
 
     synapseMatrix = new int*[neuronCount + 1];
-    
+
     for(int i = 0; i < neuronCount + 1; i++)
         synapseMatrix[i] = new int[neuronCount + 1];
 
@@ -159,9 +160,15 @@ int SNP::loadSNPFromFile(std::string fileName){
         }
     }
 
-    input.close();
-    
+    input->close();
+
     return 0;
+
+}
+
+int SNP::loadSNPFromFile(string fileName){
+    ifstream input(fileName, ios::binary);
+    return loadSNPFromFile(&input);
 }
 
 void SNP::destroySynapseMatrix(){
@@ -180,43 +187,43 @@ void SNP::destroyInputSpikeTrain(){
 
 void SNP::printSNPContents(){
 
-    std::cout << "INPUT SNP DETAILS" << std::endl;
-    std::cout << "Neuron Count: " << neuronCount << std::endl;
-    std::cout << "Rule Count: " << ruleCount << std::endl;
+    cout << "INPUT SNP DETAILS" << endl;
+    cout << "Neuron Count: " << neuronCount << endl;
+    cout << "Rule Count: " << ruleCount << endl;
     
-    std::cout << "Init Config: [";
+    cout << "Init Config: [";
     for(int i = 0; i < neuronCount; i++){
-        std::cout << initConfig[i];
+        cout << initConfig[i];
         if(i < neuronCount - 1)
-            std::cout << ", ";
+            cout << ", ";
         else
-            std::cout << "]\n";
+            cout << "]\n";
     }
     
     if(inputSpikeTrainLen > 0){
-        std::cout << "Input Spike Train: [";
+        cout << "Input Spike Train: [";
         for(int i = 0; i < inputSpikeTrainSteps[inputSpikeTrainLen - 1]; i++){
-            std::cout << inputSpikeTrain[i];
+            cout << inputSpikeTrain[i];
             if(i < inputSpikeTrainSteps[inputSpikeTrainLen - 1] - 1)
-                std::cout << ", ";
+                cout << ", ";
             else
-                std::cout << "]\n";
+                cout << "]\n";
         }
     }
 
-    std::cout << "Rule Neuron IDs: [";
+    cout << "Rule Neuron IDs: [";
     for(int i = 0; i < ruleCount; i++){
-        std::cout << ruleIds[i];
+        cout << ruleIds[i];
         if(i < ruleCount - 1)
-            std::cout << ", ";
+            cout << ", ";
         else
-            std::cout << "]\n";
+            cout << "]\n";
     }
 
-    std::cout << "Rules [";
+    cout << "Rules [";
     for(int i = 0; i < ruleCount; i++){
-        std::stringstream ss;
-        std::string regex = (ruleRegexs[i].length() > 0)?ruleRegexs[i] + "/":"";
+        stringstream ss;
+        string regex = (ruleRegexs[i].length() > 0)?ruleRegexs[i] + "/":"";
         ss << regex; 
         
         if(ruleConsumedSpikes[i] > 1)
@@ -234,21 +241,21 @@ void SNP::printSNPContents(){
         if(ruleDelays[i] > 0)
             ss << ";" << ruleDelays[i];
 
-        std::cout << ss.str();
+        cout << ss.str();
 
         if(i < ruleCount - 1)
-            std::cout << ", ";
+            cout << ", ";
         else
-            std::cout << "]\n";
+            cout << "]\n";
     }
 
-    std::cout << "Neuron Labels: [";
+    cout << "Neuron Labels: [";
     for(int i = 0; i < neuronCount; i++){
-        std::cout << neuronLabels[i];
+        cout << neuronLabels[i];
         if(i < neuronCount - 1)
-            std::cout << ", ";
+            cout << ", ";
         else
-            std::cout << "]\n";
+            cout << "]\n";
     }
 
 }
@@ -256,7 +263,7 @@ void SNP::printSNPContents(){
 int SNP::getRuleRegexCode(int ruleId){
     int retVal = -1;
 
-    std::string r = ruleRegexs[ruleId];
+    string r = ruleRegexs[ruleId];
 
     if(r == "a+")
         retVal = 0;
@@ -273,13 +280,13 @@ int SNP::getRuleRegexCode(int ruleId){
 }
 
 void SNP::getRuleRegexRepr(int ruleId, regex_repr *repr){
-    std::string regex = getRuleRegex(ruleId);
-    regex = expandRegex(regex);
+    string regex = getRuleRegex(ruleId);
+    regex = utils::expandRegex(regex);
 
     float k = 0;
     float j = 0;
     
-    for(int i = 0; i < regex.length(); i++){
+    for(size_t i = 0; i < regex.length(); i++){
         switch(regex[i]){
             case 'a':
                 k++;
@@ -313,16 +320,16 @@ void SNP::getRuleRegexRepr(int ruleId, regex_repr *repr){
 
 }
 
-std::string SNP::getRuleRegex(int ruleId){
-    std::string regex = (ruleRegexs[ruleId].length() > 0)?
+string SNP::getRuleRegex(int ruleId){
+    string regex = (ruleRegexs[ruleId].length() > 0)?
         ruleRegexs[ruleId]:
-        "a^" + boost::lexical_cast<std::string>(ruleConsumedSpikes[ruleId]);
+        "a^" + boost::lexical_cast<string>(ruleConsumedSpikes[ruleId]);
     return regex;
 }
 
-std::string SNP::getRule(int ruleId){
-    std::stringstream ss;
-    std::string regex = (ruleRegexs[ruleId].length() > 0)?ruleRegexs[ruleId] + "/":"";
+string SNP::getRule(int ruleId){
+    stringstream ss;
+    string regex = (ruleRegexs[ruleId].length() > 0)?ruleRegexs[ruleId] + "/":"";
     ss << regex; 
 
     if(ruleConsumedSpikes[ruleId] > 1)

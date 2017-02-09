@@ -46,10 +46,10 @@ int main(int argc, char **argv){
 
 
     //Copy snp initial config to configVector
-    copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
+    utils::copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
 
     //Copy snp rule delays into delays vector
-    copyIntArrIntoFloatArr(snp.ruleDelays, delays, n);
+    utils::copyIntArrIntoFloatArr(snp.ruleDelays, delays, n);
 
     std::fill_n(stateVector, m, 1);
     std::fill_n(neuronFlags, m, -1);

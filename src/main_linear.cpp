@@ -39,10 +39,10 @@ int main(int argc, char **argv){
     regexs = new std::string[n]();
 
     //Copy snp initial config to configVector
-    copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
+    utils::copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
 
     //Copy snp rule delays into delays vector
-    copyIntArrIntoFloatArr(snp.ruleDelays, delays, n);
+    utils::copyIntArrIntoFloatArr(snp.ruleDelays, delays, n);
 
     std::fill_n(stateVector, m, 1);
 
@@ -53,8 +53,6 @@ int main(int argc, char **argv){
         rules[index + 2] = -(snp.ruleConsumedSpikes[i]);
     }
 
-    printVectorAs2DArray(rules, n, 3);
-
     for(int i = 0; i < n; i++){
         for(int j = 1; j < m + 1; j++){
             if(snp.synapseMatrix[snp.ruleIds[i]][j] == 1)
@@ -63,7 +61,7 @@ int main(int argc, char **argv){
     }
 
     for(int i = 0; i < n; i++){
-        regexs[i] = expandRegex(snp.getRuleRegex(i));
+        regexs[i] = utils::expandRegex(snp.getRuleRegex(i));
     }
 
     
@@ -298,7 +296,7 @@ void matchRulesRegex(std::string *regexVector, float* rules, float* configVector
 
     for(int i = 0; i < vectorSize; i++){
         std::string expandedRegex = regexVector[i];
-        std::string spikeString = expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
+        std::string spikeString = utils::expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
         float *ruleMarkPtr = spikingVector + i;
         threads[i] = std::thread(matchRuleRegex, expandedRegex, spikeString, ruleMarkPtr);
     }
