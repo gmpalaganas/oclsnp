@@ -54,7 +54,6 @@ void initVectorAddKernel();
 void initVectorElemMultKernel();
 void initVectorSelectiveAddKernel();
 void initSNPComputeNetGainKernel();
-void initSNPDetermineRulesKernel();
 void initSNPPostComputeKernel();
 void initSNPResetKernel();
 void initSNPSetStatesKernel();
@@ -64,7 +63,6 @@ namespace gpu{
     void vectorElemMult(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
     void vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int cols);
     void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector);
-    void snpDetermineRules(int n, float *spikingVector, float *rules);
     void snpPostCompute(int n, int m,  float *rules, float *transitionVector);
     void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector, float *neuronFlags);
     void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,

@@ -114,7 +114,8 @@ int main(int argc, char **argv){
         step++;
     }while(areRulesApplicable(spikingVector,n));
 
-    outputStream << "************************************" << std::endl; outputStream << "Configuration after " << step - 1 << " steps:\n";
+    outputStream << "************************************" << std::endl;
+    outputStream << "Configuration after " << step - 1 << " steps:\n";
     outputStream << "------------------------------------" << std::endl;    
 
     for(int i = 0; i < m; i++){
@@ -279,8 +280,6 @@ void cleanup(){
 
     clReleaseKernel(snpComputeNetGainKernel);
     clReleaseProgram(snpComputeNetGainProgram);
-    clReleaseKernel(snpDetermineRulesKernel);
-    clReleaseProgram(snpDetermineRulesProgram);
     clReleaseKernel(snpPostComputeKernel);
     clReleaseProgram(snpPostComputeProgram);
     clReleaseKernel(snpResetKernel);
@@ -406,7 +405,6 @@ void initKernels(){
     initVectorSelectiveAddKernel();
 
     initSNPComputeNetGainKernel();
-    initSNPDetermineRulesKernel();
     initSNPPostComputeKernel();
     initSNPResetKernel();
     initSNPSetStatesKernel();
@@ -489,25 +487,6 @@ void initSNPComputeNetGainKernel(){
     checkCLError(clErr, "Unable to build program", __FUNCTION__, snpComputeNetGainProgram);
 
     snpComputeNetGainKernel = clCreateKernel(snpComputeNetGainProgram, "snpComputeNetGain", &clErr);
-    checkCLError(clErr, "Unable to create kernel", __FUNCTION__);
-   
-}
-
-void initSNPDetermineRulesKernel(){
-    //char *src = loadProgramSource(SNP_DETERMINE_RULES_SRC);
-
-    std::ifstream file(SNP_DETERMINE_RULES_SRC);
-    std::string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
-    file.close();
-
-    char *src = (char *)source.c_str();
-
-    snpDetermineRulesProgram = clCreateProgramWithSource(clContext,1,(const char **)&src, NULL, &clErr);
-    checkCLError(clErr, "Unable to create program", __FUNCTION__);
-    clErr = clBuildProgram(snpDetermineRulesProgram,1,&clDevice,NULL,NULL,NULL);
-    checkCLError(clErr, "Unable to build program", __FUNCTION__, snpDetermineRulesProgram);
-
-    snpDetermineRulesKernel = clCreateKernel(snpDetermineRulesProgram, "snpDetermineRules", &clErr);
     checkCLError(clErr, "Unable to create kernel", __FUNCTION__);
    
 }
@@ -835,8 +814,6 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     checkCLError(clErr, "Unable to set kernel param 7", __FUNCTION__);
     clErr = clSetKernelArg(snpSetStatesKernel,8,sizeof(cl_mem),&clTransitionBuffer);
     checkCLError(clErr, "Unable to set kernel param 8", __FUNCTION__);
-    clErr = clSetKernelArg(snpSetStatesKernel,9,n * 3 * sizeof(float),NULL);
-    checkCLError(clErr, "Unable to set kernel param 9", __FUNCTION__);
 
     std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     clErr = clEnqueueNDRangeKernel(clCommandQueue, snpSetStatesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);

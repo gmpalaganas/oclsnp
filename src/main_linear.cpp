@@ -260,8 +260,8 @@ void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGai
 }
 
 
-void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
-        float* stateVector,  float* transitionVector){
+void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  
+        float* lossVector, float* stateVector,  float* transitionVector){
 
     std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
     for(int i = 0; i < n; i++){
