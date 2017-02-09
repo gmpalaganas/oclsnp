@@ -33,6 +33,11 @@ build/utils/regex.o: src/utils/regex.cpp
 	$(CC) $(CFLAGS) $(INCLUDES) src/utils/regex.cpp $(LIBS) -o $@
 
 bin/kernels:
+	if [ -d "bin/kernels" ]; then rm -r bin/kernels; fi
+	cp -r src/kernels bin/
+
+update_kernels:
+	if [ -d "bin/kernels" ]; then rm -r bin/kernels; fi
 	cp -r src/kernels bin/
 
 clean:
