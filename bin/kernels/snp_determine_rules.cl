@@ -67,6 +67,7 @@ int match_regex(float len, regex_repr *repr){
 }
 
 __kernel void snpDetermineRules(int n, int m,  __global float *spikingVector, __global float *configVector, __global float *rules,  __global regex_repr *repr) {
+    printf("here\n");
     
     int i = get_global_id(0);
 

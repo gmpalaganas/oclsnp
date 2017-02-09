@@ -20,14 +20,14 @@ int main(int argc, char **argv){
         for(int i = 3; i < argc; i++)
             flags.push_back(checkFlag(argv[i]));
     }
-
+    
     clErr = snp.loadSNPFromFile(argv[1]);
     checkError(clErr, "Invalid Binary file", __FUNCTION__);
 
 
     int n = snp.ruleCount;
     int m = snp.neuronCount;
-
+    
     initCL(n,m);
     initKernels();
 
@@ -42,8 +42,7 @@ int main(int argc, char **argv){
     transitionVector = new float[(m + 1) * n]();
     neuronFlags = new float[m]();
 
-    repr = new regex_repr[n]();
-
+    regexs = new std::string[n]();
 
     //Copy snp initial config to configVector
     utils::copyIntArrIntoFloatArr(snp.initConfig, configVector, m); 
@@ -68,17 +67,20 @@ int main(int argc, char **argv){
         } 
     }
 
-    for(int i = 0; i < n; i++){
-        snp.getRuleRegexRepr(i, &repr[i]);
-        printf("%f %f\n", repr[i].k, repr[i].j);
+     for(int i = 0; i < n; i++){
+        regexs[i] = utils::expandRegex(snp.getRuleRegex(i));
     }
 
     int step = 1;
 
     //Simulation Proper
     do{
-    
-        gpu::snpDetermineRules(n, m, spikingVector, configVector, rules, repr);
+
+        std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+        matchRulesRegex(regexs, rules, configVector, spikingVector, neuronFlags, n);
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
@@ -114,6 +116,7 @@ int main(int argc, char **argv){
 
     outputStream << "************************************" << std::endl; outputStream << "Configuration after " << step - 1 << " steps:\n";
     outputStream << "------------------------------------" << std::endl;    
+
     for(int i = 0; i < m; i++){
         outputStream << "NEURON " << i+1 << ": " << snp.neuronLabels[i] << std::endl; 
         outputStream << "Spikes: " << configVector[i] << std::endl;
@@ -305,7 +308,7 @@ void cleanup(){
     delete[] rules;
     delete[] delays;
     delete[] transitionVector;
-    delete[] repr;
+    delete[] regexs;
 
     if(outputFile)
         outputFile.close();
@@ -364,8 +367,6 @@ void initCL(int n, int m){
     clNeuronFlagsBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, m  * sizeof(float), NULL, &clErr); 
     checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 
-    clReprBuffer = clCreateBuffer(clContext, CL_MEM_READ_ONLY, n * sizeof(regex_repr), NULL, &clErr); 
-    checkCLError(clErr, "Unable to create clBuffer", __FUNCTION__);
 }
 
 //Load OpenCL Program for source (.cl file)
@@ -725,45 +726,6 @@ void gpu::snpComputeNetGain(int n, int m, float *stateVector, float *lossVector,
 }
 
 
-
-void gpu::snpDetermineRules(int n, int m, float *spikingVector, float *configVector, float *rules, regex_repr *repr){
-    size_t globalSize = n;
-
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clConfigBuffer,CL_FALSE,0,m * sizeof(float), configVector, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clConfigBuffer", __FUNCTION__);
-
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clRulesBuffer,CL_FALSE,0,3 * n * sizeof(float), rules, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clConfigBuffer", __FUNCTION__);
-
-    clErr = clEnqueueWriteBuffer(clCommandQueue,clReprBuffer,CL_FALSE,0,n * sizeof(regex_repr), repr, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue write clReprBuffer", __FUNCTION__);
-
-    clErr = clSetKernelArg(snpDetermineRulesKernel,0,sizeof(cl_int),&n);
-    checkCLError(clErr, "Unable to set kernel param 0", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,1,sizeof(cl_int),&m);
-    checkCLError(clErr, "Unable to set kernel param 1", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,2,sizeof(cl_mem),&clSpikingBuffer);
-    checkCLError(clErr, "Unable to set kernel param 2", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,3,sizeof(cl_mem),&clConfigBuffer);
-    checkCLError(clErr, "Unable to set kernel param 3", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,4,sizeof(cl_mem),&clRulesBuffer);
-    checkCLError(clErr, "Unable to set kernel param 4", __FUNCTION__);
-    clErr = clSetKernelArg(snpDetermineRulesKernel,5,sizeof(cl_mem),&clReprBuffer);
-    checkCLError(clErr, "Unable to set kernel param 5", __FUNCTION__);
-
-
-    std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
-    clErr = clEnqueueNDRangeKernel(clCommandQueue, snpDetermineRulesKernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
-    checkCLError(clErr, "Unable to enqueue kernel", __FUNCTION__);
-    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-
-    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-
-    clEnqueueReadBuffer(clCommandQueue, clSpikingBuffer, CL_TRUE, 0, n * sizeof(float), spikingVector, 0, NULL, NULL); 
-    checkCLError(clErr, "Unable to enqueue read clBuffer", __FUNCTION__);
-
-}
-
 void gpu::snpPostCompute(int n, int m,  float *rules, float *transitionVector){
 
     size_t globalSize = n;
@@ -896,6 +858,26 @@ void gpu::snpSetStates(int n, int m,  float *configVector, float *spikingVector,
     clEnqueueReadBuffer(clCommandQueue, clTransitionBuffer, CL_TRUE, 0, (m + 1) * n  * sizeof(float), transitionVector, 0, NULL, NULL); 
     checkCLError(clErr, "Unable to enqueue read clBuffer G", __FUNCTION__);
 
+}
+
+void matchRuleRegex(int threadId, std::string regex, std::string str, float* spikingVector, float* neuronFlag, float* rules){
+    re2::StringPiece input(str);
+    spikingVector[threadId] = re2::RE2::FullMatch(input,regex);
+}
+
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, float* neuronFlags,  int n){
+
+    std::thread threads[n];
+
+    for(int i = 0; i < n; i++){
+        std::string expandedRegex = regexVector[i];
+        std::string spikeString = utils::expandRegex("a^"+ boost::lexical_cast<std::string>(configVector[(int)rules[3 * i] - 1]));
+        threads[i] = std::thread(matchRuleRegex, i, expandedRegex, spikeString, spikingVector, neuronFlags, rules);
+    }
+    
+    for(int i = 0; i < n; i++){
+        threads[i].join();
+    }
 }
 
 void getMemUsage(double& vmUsage, double& residentSet){

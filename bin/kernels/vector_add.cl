@@ -3,5 +3,4 @@ __kernel void vectorAdd(__global float *A, __global float *B, __global float *C,
 
     if(i < vecSize)
         C[i] = A[i] + B[i];
-
 }

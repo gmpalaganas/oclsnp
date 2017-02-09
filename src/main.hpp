@@ -64,12 +64,15 @@ namespace gpu{
     void vectorElemMult(float *vectorA, float *vectorB, float *outputVector, int vectorSize);
     void vectorSelectiveAdd(float *vectorA, float *outputVector, int rows, int cols);
     void snpComputeNetGain(int n, int m, float *stateVector, float *lossVector, float *gainVector, float *netGainVector);
-    void snpDetermineRules(int n, int m, float *spikingVector, float *configVector, float *rules, regex_repr *repr);
+    void snpDetermineRules(int n, float *spikingVector, float *rules);
     void snpPostCompute(int n, int m,  float *rules, float *transitionVector);
     void snpReset(int n, int m,  float *lossVector, float *gainVector, float *netGainVector, float *neuronFlags);
     void snpSetStates(int n, int m,  float *configVector, float *spikingVector, float* rules,  float* delays,  float* lossVector,
             float* stateVector,  float* transitionVector);
 };
+
+void matchRuleRegex(int threadId, std::string regex, std::string str, float* spikingVector, float* neuronFlag, float* rules);
+void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, float* neuronFlags,  int n);
 
 void getMemUsage(double& vmUsage, double& residentSet);
 
@@ -142,6 +145,6 @@ float *transitionVector;
 
 float *neuronFlags;
 
-std::ofstream outputFile;
+std::string *regexs;
 
-regex_repr *repr;
+std::ofstream outputFile;
