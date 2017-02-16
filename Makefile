@@ -28,9 +28,8 @@ build/utils/%.o: src/utils/%.cpp
 build/snp/%.o: src/snp/%.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDES) $< $(LIBS) -o $@
 
-bin/kernels:
-	if [ -d "bin/kernels" ]; then rm -r bin/kernels; fi
-	cp -r src/kernels bin/
+bin/kernels: update_kernels
+	@echo Copying Kernels
 
 build_directories:
 	mkdir -p build/utils build/snp
