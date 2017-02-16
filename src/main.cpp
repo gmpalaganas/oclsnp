@@ -39,8 +39,6 @@ int main(int argc, char **argv){
         outputFile << outputStream.str();
     }
 
-    //cleanup();
-
     return 0;
 
 }
