@@ -59,6 +59,10 @@ int SNP::loadSNPFromFile(ifstream *input){
     if(inputSpikeTrainLen > 0){
         inputSpikeTrainSteps = new int[inputSpikeTrainLen];
         inputSpikeTrainSpikes = new int[inputSpikeTrainLen];
+    }else{
+        inputSpikeTrainSteps = NULL;
+        inputSpikeTrainSpikes = NULL;
+        inputSpikeTrain = NULL;
     }
 
     for(int i = 0; i < inputSpikeTrainLen; i++){

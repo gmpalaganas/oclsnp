@@ -4,6 +4,7 @@ LIBS = -lOpenCL -lre2 -pthread
 CFLAGS = -std=c++11 -Wall
 OBJS = build/snp/snp.o\
 	   build/snp/regex_tree.o\
+	   build/snp/emulator.o\
 	   build/utils/array.o\
 	   build/utils/binary_reader.o\
 	   build/utils/regex.o\
