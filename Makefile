@@ -1,10 +1,11 @@
 CC = g++
-INCLUDES = -Isrc/snp -Isrc/utils
+BOOST_COMPUTE = /usr/include/boost
+INCLUDES = -Isrc/snp -Isrc/utils -I$(BOOST_COMPUTE)
 LIBS = -lOpenCL -lre2 -pthread
-CFLAGS = -std=c++11 -Wall
+CFLAGS = -std=c++14 -Wall
 OBJS = build/snp/snp.o\
 	   build/snp/regex_tree.o\
-	   build/snp/emulator.o\
+	   build/snp/boost_emulator.o\
 	   build/utils/array.o\
 	   build/utils/binary_reader.o\
 	   build/utils/regex.o\
