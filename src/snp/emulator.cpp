@@ -44,23 +44,25 @@ int SNPEmulator::execute(stringstream *outputStream){
 
         chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
         matchRulesRegex(regexs.data(), rules.data(), configVector.data(), spikingVector.data(), neuronFlags.data(), n);
-        chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
-        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
+        chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         *outputStream << "************************************" << std::endl;
         *outputStream << "At step " << step << ":" << std::endl;
 
+        begin = std::chrono::high_resolution_clock::now();
         snpSetStates(n, m, configVector, spikingVector, rules, delays, lossVector, stateVector, transitionVector);
         vectorSelectiveAdd(transitionVector, gainVector, n, m);
         snpComputeNetGain(n, m, stateVector, lossVector, gainVector, netGainVector);
         vectorAdd(netGainVector,configVector,configVector);
         snpPostCompute(n, m, rules, transitionVector);
         snpReset(n, m, lossVector, gainVector, netGainVector,neuronFlags);
-
+        end = std::chrono::high_resolution_clock::now();
+        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         *outputStream << "CHOSEN RULES" << std::endl;
         for(size_t j = 0; j < n; j++){

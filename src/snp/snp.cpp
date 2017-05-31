@@ -250,6 +250,12 @@ int SNP::loadSNPFromFile(string fileName){
     return loadSNPFromFile(&input);
 }
 
+
+int SNP::loadSNPFromTextFile(string fileName){
+    ifstream input(fileName, ios::binary);
+    return loadSNPFromTextFile(&input);
+}
+
 void SNP::destroySynapseMatrix(){
     for(int i = 0; i < neuronCount + 1; i++)
         delete[] synapseMatrix[i];

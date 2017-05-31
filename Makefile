@@ -15,10 +15,10 @@ all: build_directories bin/oclsnp bin/linsnp bin/kernels
 	@echo Done
 
 bin/oclsnp: build/main.o $(OBJS) 
-	$(CC) -o $@ $(CFLAGS) $(INCLUDES) $(LIBS) $^
+	$(CC) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS)
 
 bin/linsnp: build/main_linear.o $(OBJS)
-	$(CC) $(LIBS) build/main_linear.o build/utils/array.o build/snp/snp.o build/snp/regex_tree.o build/utils/binary_reader.o build/utils/regex.o -o bin/linsnp
+	$(CC) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS)
 
 build/%.o: src/%.cpp
 	$(CC) $(CFLAGS) -c $(INCLUDES) $< $(LIBS) -o $@

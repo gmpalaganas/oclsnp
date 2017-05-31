@@ -18,9 +18,9 @@
 #include <re2/re2.h>
 #include <boost/lexical_cast.hpp>
 
-#include "snp/snp.hpp"
-#include "utils/array.hpp"
-#include "utils/regex.hpp"
+#include <snp.hpp>
+#include <array.hpp>
+#include <regex.hpp>
 
 #define EXECUTE_FAILURE -1
 
@@ -41,6 +41,12 @@ void snpSetStates(int n, int m,  float *configVector, float *spikingVector, floa
 
 void matchRuleRegex(std::string regex, std::string input, float* isMatch);
 void matchRulesRegex(std::string *regexVector, float* rules, float* configVector, float* spikingVector, int vectorSize);
+
+namespace programFlags{
+    enum ProgramFlags { SILENT, TEXT, PRINT_SNP };
+}
+
+programFlags::ProgramFlags checkFlag(std::string flag);
 
 void getMemUsage(double& vmUsage, double& residentSet);
 
