@@ -2,7 +2,7 @@
 
 An OpenCL implementation of a simulator for Spiking Neural Systems.
 
-The project uses OpenCL 1.1 libraries on top of C++11.
+The project uses OpenCL 1.2 libraries on top of C++14.
 
 
 Limitations
@@ -12,10 +12,9 @@ Limitations
 - Built-in Environment not yet supported
     - This means you have still have to create an "Environment neuron" to simulate an environment
     - As an effect, input and output spike train not yet supported
-- Tested upto input with 336 neurons and 480 rules
+- Tested upto input with 46592 neurons and 262656 rules
 - Features not implemented
     - GUI
-    - Flags (i.e. -o --no-print)
 
 
 Dependencies
@@ -30,6 +29,7 @@ This project is hardware dependent so machines with different GPUs have differen
 - C++ Boost library
 - GNU Make
 - GNU g++
+- Google re2
 
 ### MACHINES WITH NVIDIA CARD
 - nVidia drivers for the card in your machine
@@ -51,13 +51,13 @@ Software Versions
 - g++ 5.3.0
 - boost 1.6.0
 - make 4.1
-- cuda 7.5
+- cuda 8.0 
 
 ### Windows
 - git 2.7.0
 - g++ 4.8.1
 - boost 1.55.0
-- cuda 7.5
+- cuda 8.0
 
 Installing Dependencies
 ------
