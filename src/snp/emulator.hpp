@@ -8,6 +8,7 @@
 #include <sstream>
 #include <thread>
 
+#include <unistd.h>
 #include <CL/cl.h>
 #include <re2/re2.h>
 #include <snp.hpp>
@@ -26,8 +27,8 @@
 class SNPEmulator{
 
     public:
-        SNPEmulator(std::ifstream *file_stream);
-        SNPEmulator(std::string filename);
+        SNPEmulator(std::ifstream *file_stream,bool isBinary);
+        SNPEmulator(std::string filename,bool isBinary);
 
         int execute(std::stringstream *outputstream);
 

@@ -4,9 +4,12 @@ using namespace std;
 
 namespace compute = boost::compute;
 
-SNPEmulator::SNPEmulator(ifstream *file_stream){
+SNPEmulator::SNPEmulator(ifstream *file_stream, bool isBinary){
     
-    snp.loadSNPFromFile(file_stream);
+    if(isBinary)
+        snp.loadSNPFromFile(file_stream);
+    else
+        snp.loadSNPFromTextFile(file_stream);
 
     initCL();
     initVecs();
@@ -14,11 +17,14 @@ SNPEmulator::SNPEmulator(ifstream *file_stream){
 
 };
 
-SNPEmulator::SNPEmulator(string filename){
+SNPEmulator::SNPEmulator(string filename, bool isBinary){
 
     ifstream file_stream(filename);
 
-    snp.loadSNPFromFile(&file_stream);
+    if(isBinary)
+        snp.loadSNPFromFile(&file_stream);
+    else
+        snp.loadSNPFromTextFile(&file_stream);
 
     initCL();
     initVecs();
@@ -302,7 +308,8 @@ void SNPEmulator::snpComputeNetGain(size_t n, size_t m, vector<float> &stateVect
 
 void SNPEmulator::snpPostCompute(size_t n, size_t m,  vector<float> &rules, vector<float> &transitionVector){
     
-    size_t globalSize = n;
+    size_t globalSize = 1024;
+    size_t localSize = 64;
     
     compute::copy(
             rules.begin(),
@@ -324,7 +331,7 @@ void SNPEmulator::snpPostCompute(size_t n, size_t m,  vector<float> &rules, vect
     snpPostComputeKernel.set_arg(3,deviceTransitionVector);
     snpPostComputeKernel.set_arg(4,compute::local_buffer<float>(n));
 
-    queue.enqueue_1d_range_kernel(snpPostComputeKernel,0,globalSize,1);
+    queue.enqueue_1d_range_kernel(snpPostComputeKernel,0,globalSize,localSize);
     queue.finish();
 
     compute::copy(

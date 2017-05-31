@@ -170,6 +170,81 @@ int SNP::loadSNPFromFile(ifstream *input){
 
 }
 
+int SNP::loadSNPFromTextFile(ifstream *input){
+
+    inputSpikeTrainLen = 0;
+    inputSpikeTrainSteps = NULL;
+    inputSpikeTrainSpikes = NULL;
+    inputSpikeTrain = NULL;
+
+    string line;
+    stringstream ss(line);
+
+    getline(*input,line);
+    istringstream intss(line);
+    intss >> ruleCount;
+
+    getline(*input,line);
+    intss = istringstream(line);
+    intss >> neuronCount;
+
+    initConfig = new int[neuronCount];
+    getline(*input,line);
+    intss = istringstream(line);
+
+    for(int i = 0; i < neuronCount; i++)
+        intss >> initConfig[i];
+
+    ruleIds = new int[ruleCount];
+    ruleRegexs = new string[ruleCount];
+    ruleConsumedSpikes = new int[ruleCount];
+    ruleProducedSpikes = new int[ruleCount];
+    ruleDelays = new int[ruleCount];
+
+    for(int i = 0; i < ruleCount; i++){
+        getline(*input,line);
+        ss = stringstream(line);
+        string buffer;
+
+        ss >> buffer;
+        ruleIds[i] = atoi(buffer.c_str());
+        ss >> ruleRegexs[i];
+        ss >> buffer;
+        ruleConsumedSpikes[i] = atoi(buffer.c_str());
+        ss >> buffer;
+        ruleProducedSpikes[i] = atoi(buffer.c_str());
+        ss >> buffer;
+        ruleDelays[i] = atoi(buffer.c_str());
+
+    }
+
+    neuronLabels = new string[neuronCount];
+
+    for(int i = 0; i < neuronCount; i++)
+        getline(*input, neuronLabels[i]);
+
+
+    synapseMatrix = new int*[neuronCount + 1];
+    
+    for(int i = 0; i < neuronCount + 1; i++){
+        synapseMatrix[i] = new int[neuronCount + 1];
+        fill_n(synapseMatrix[i], neuronCount + 1, 0);
+        getline(*input,line);
+        intss = istringstream(line);
+
+        int out_index;
+        while(intss >> out_index){
+            if(out_index == -1)
+                break;
+            synapseMatrix[i][out_index] = 1;
+        }
+    }
+
+    input->close();
+
+    return 0;
+}
+
 int SNP::loadSNPFromFile(string fileName){
     ifstream input(fileName, ios::binary);
     return loadSNPFromFile(&input);
@@ -260,6 +335,13 @@ void SNP::printSNPContents(){
             cout << ", ";
         else
             cout << "]\n";
+    }
+
+    cout << "Synapse Matrix:" << endl;
+    for(int i = 0; i < neuronCount + 1; i++){
+        for(int j = 0; j < neuronCount + 1; j++)
+            cout << synapseMatrix[i][j] << ' ';
+        cout << endl;
     }
 
 }

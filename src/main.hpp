@@ -16,7 +16,7 @@
 #include <emulator.hpp>
 
 namespace programFlags{
-    enum ProgramFlags { SILENT };
+    enum ProgramFlags { SILENT, TEXT, PRINT_SNP };
 }
 
 programFlags::ProgramFlags checkFlag(std::string flag);

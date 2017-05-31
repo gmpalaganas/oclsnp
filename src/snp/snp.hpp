@@ -3,9 +3,11 @@
 #include <binary_reader.hpp>
 #include <regex.hpp>
 
+#include <algorithm>
 #include <string>
 #include <bitset>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -42,6 +44,8 @@ class SNP{
 
         int loadSNPFromFile(std::ifstream *input);
         int loadSNPFromFile(std::string fileName);
+        int loadSNPFromTextFile(std::ifstream *input);
+        int loadSNPFromTextFile(std::string fileName);
         void printSNPContents();
 
         int getRuleRegexCode(int ruleId);
