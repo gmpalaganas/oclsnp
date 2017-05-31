@@ -33,7 +33,7 @@ def main():
 
     command_template = '%s ' + input_dir +'%s --txt'
 
-    for i in range(0,1):
+    for i in range(0,9):
         inputSize = pow(2,i+1)
         bitonic_input = bitonic_files % inputSize
         general_input = general_files % inputSize
