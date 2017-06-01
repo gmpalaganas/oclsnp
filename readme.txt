@@ -2,7 +2,7 @@
 
 An OpenCL implementation of a simulator for Spiking Neural Systems.
 
-The project uses OpenCL 1.1 libraries on top of C++11.
+The project uses OpenCL 1.2 libraries on top of C++14.
 
 
 Limitations
@@ -12,10 +12,7 @@ Limitations
 - Built-in Environment not yet supported
     - This means you have still have to create an "Environment neuron" to simulate an environment
     - As an effect, input and output spike train not yet supported
-- Tested upto input with 336 neurons and 480 rules
-- Features not implemented
-    - GUI
-    - Flags (i.e. -o --no-print)
+- Tested upto input with 2752 neurons and 4032 rules
 
 
 Dependencies
@@ -30,6 +27,7 @@ This project is hardware dependent so machines with different GPUs have differen
 - C++ Boost library
 - GNU Make
 - GNU g++
+- Google re2
 
 ### MACHINES WITH NVIDIA CARD
 - nVidia drivers for the card in your machine
@@ -51,13 +49,13 @@ Software Versions
 - g++ 5.3.0
 - boost 1.6.0
 - make 4.1
-- cuda 7.5
+- cuda 8.0 
 
 ### Windows
 - git 2.7.0
 - g++ 4.8.1
 - boost 1.55.0
-- cuda 7.5
+- cuda 8.0
 
 Installing Dependencies
 ------
@@ -123,6 +121,45 @@ Installing Dependencies
 	```bash
 	$ sudo pacman -S boost
 	```
+
+
+8. Install re2
+
+	```bash
+	$ sudo pacman -S re2-git
+	```
+
+### Ubuntu and Ubuntu based systems
+
+1. Update apt repositories
+	
+	```
+	$ sudo apt-get update
+	```
+
+2. Install git
+
+	```
+	$ sudo apt-get install git
+	```
+
+3. Install boost
+	
+	```
+	$ sudo apt-get install libboost-all-dev
+	```
+
+4. Install boost compute: https://boostorg.github.io/compute/boost_compute/getting_started.html
+
+5. Install google re2 https://github.com/google/re2/wiki/Install
+
+6. Install opencl icd headers
+
+	```
+	$ sudo apt install ocl-icd-opencl-dev
+	```
+
+7. Install [AMD App SDK](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/) or [CUDA SDK](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/) 
 
 ### Windows
 
@@ -212,13 +249,13 @@ Running
 2. For Parallel
 
 	```bash
-	$ ./oclsnp <input_binary>
+	$ ./oclsnp <input_binary> [--o output_file] [--txt | --silent]
 	```
 
 3. For Linear
 	
 	```bash
-	$ ./linsnp <input_binary>
+	$ ./linsnp <input_binary> [--o output_file] [--txt | --silent]
 	```
 
 ### On Windows
