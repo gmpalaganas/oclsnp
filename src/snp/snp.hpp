@@ -42,6 +42,8 @@ class SNP{
 
         int loadSNPFromFile(std::ifstream *input);
         int loadSNPFromFile(std::string fileName);
+        int loadSNPFromTextFile(std::ifstream *input);
+        int loadSNPFromTextFile(std::string fileName);
         void printSNPContents();
 
         int getRuleRegexCode(int ruleId);

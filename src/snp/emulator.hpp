@@ -29,9 +29,9 @@
 class SNPEmulator{
 
     public:
-        SNPEmulator(std::ifstream *file_stream);
-        SNPEmulator(std::string filename);
-        ~SNPEmulator();
+        SNPEmulator(std::ifstream *file_stream,bool isBinary);
+        SNPEmulator(std::string filename,bool isBinary);
+       ~SNPEmulator();
 
         int execute(std::stringstream *outputstream);
 

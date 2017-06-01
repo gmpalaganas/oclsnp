@@ -26,7 +26,7 @@
 #define SNP_SET_STATES_SRC       "kernels/snp_set_states.cl"
 
 namespace programFlags{
-    enum ProgramFlags { SILENT };
+    enum ProgramFlags { SILENT, TEXT, PRINT_SNP };
 }
 
 programFlags::ProgramFlags checkFlag(std::string flag);

@@ -1,29 +1,35 @@
 #include "emulator.hpp"
 
 using namespace std;
-
-SNPEmulator::SNPEmulator(ifstream *file_stream){
+SNPEmulator::SNPEmulator(ifstream *file_stream, bool isBinary){
     
-    snp.loadSNPFromFile(file_stream);
-    utils::checkError(clErr, "Invalid Binary file", __FUNCTION__);
-
-    initVecs();
+    if(isBinary)
+        snp.loadSNPFromFile(file_stream);
+    else
+        snp.loadSNPFromTextFile(file_stream);
+    
+    runtime = chrono::microseconds(0);
     initCL();
+    initVecs();
     initKernels();
+
 };
 
-SNPEmulator::SNPEmulator(string filename){
+SNPEmulator::SNPEmulator(string filename, bool isBinary){
 
     ifstream file_stream(filename);
 
-    snp.loadSNPFromFile(&file_stream);
-    utils::checkError(clErr, "Invalid Binary file", __FUNCTION__);
+    if(isBinary)
+        snp.loadSNPFromFile(&file_stream);
+    else
+        snp.loadSNPFromTextFile(&file_stream);
 
-    initVecs();
+    runtime = chrono::microseconds(0);
     initCL();
+    initVecs();
     initKernels();
-}
 
+}
 SNPEmulator::~SNPEmulator(){
 
     clReleaseCommandQueue(clCommandQueue);
