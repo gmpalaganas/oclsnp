@@ -12,9 +12,7 @@ Limitations
 - Built-in Environment not yet supported
     - This means you have still have to create an "Environment neuron" to simulate an environment
     - As an effect, input and output spike train not yet supported
-- Tested upto input with 46592 neurons and 262656 rules
-- Features not implemented
-    - GUI
+- Tested upto input with 2752 neurons and 4032 rules
 
 
 Dependencies
@@ -124,6 +122,45 @@ Installing Dependencies
 	$ sudo pacman -S boost
 	```
 
+
+8. Install re2
+
+	```bash
+	$ sudo pacman -S re2-git
+	```
+
+### Ubuntu and Ubuntu based systems
+
+1. Update apt repositories
+	
+	```
+	$ sudo apt-get update
+	```
+
+2. Install git
+
+	```
+	$ sudo apt-get install git
+	```
+
+3. Install boost
+	
+	```
+	$ sudo apt-get install libboost-all-dev
+	```
+
+4. Install boost compute: https://boostorg.github.io/compute/boost_compute/getting_started.html
+
+5. Install google re2 https://github.com/google/re2/wiki/Install
+
+6. Install opencl icd headers
+
+	```
+	$ sudo apt install ocl-icd-opencl-dev
+	```
+
+7. Install [AMD App SDK](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/) or [CUDA SDK](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/) 
+
 ### Windows
 
 1. Install the latest driver for your GPU
@@ -212,13 +249,13 @@ Running
 2. For Parallel
 
 	```bash
-	$ ./oclsnp <input_binary>
+	$ ./oclsnp <input_binary> [--o output_file] [--txt | --silent]
 	```
 
 3. For Linear
 	
 	```bash
-	$ ./linsnp <input_binary>
+	$ ./linsnp <input_binary> [--o output_file] [--txt | --silent]
 	```
 
 ### On Windows
