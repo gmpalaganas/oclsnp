@@ -1,6 +1,6 @@
 #include "main_linear.hpp"
 
-std::chrono::microseconds runtime;
+std::chrono::microseconds runtime = std::chrono::microseconds(0);
 
 // To be configured to accept input file name
 // and number of steps
@@ -31,7 +31,8 @@ int main(int argc, char **argv){
 
     checkError(err, "Invalid Binary file", __FUNCTION__);
 
-    snp.printSNPContents();
+    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::PRINT_SNP) != flags.end())
+        snp.printSNPContents();
 
     int n = snp.ruleCount;
     int m = snp.neuronCount;
@@ -82,13 +83,14 @@ int main(int argc, char **argv){
 
         std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
         matchRulesRegex(regexs, rules, configVector, spikingVector, n);
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+        if(step == 1)
+            std::cout << runtime.count() << std::endl;
 
         if(!areRulesApplicable(spikingVector,n))
                 break;
     
-        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-
         outputStream << "************************************" << std::endl;
         outputStream << "At step " << step << ":" << std::endl;
 
@@ -132,18 +134,20 @@ int main(int argc, char **argv){
     double rss;
     getMemUsage(vm, rss);
 
-    outputStream << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+    outputStream << "Execution time: " << float(runtime.count()) << " ms" << std::endl;
     outputStream << "Memory Usage: " << rss << " kb" << std::endl;
 
-    std::cout << outputStream.str();
-    std::cout << "Execution time: " << float(runtime.count()) << " ns" << std::endl;
+    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end())
+        std::cout << outputStream.str();
+    std::cout << "Execution time: " << float(runtime.count()) << " ms" << std::endl;
     std::cout << "Memory Usage: " << rss << " kb" << std::endl;
 
     if(outputFile){
         outputFile << outputStream.str();
     }
 
-    std::cout << outputStream.str();
+    if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end())
+        std::cout << outputStream.str();
 
     if(outputFile){
         outputFile << outputStream.str();

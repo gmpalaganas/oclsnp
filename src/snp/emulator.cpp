@@ -54,15 +54,12 @@ int SNPEmulator::execute(stringstream *outputStream){
         *outputStream << "************************************" << std::endl;
         *outputStream << "At step " << step << ":" << std::endl;
 
-        begin = std::chrono::high_resolution_clock::now();
         snpSetStates(n, m, configVector, spikingVector, rules, delays, lossVector, stateVector, transitionVector);
         vectorSelectiveAdd(transitionVector, gainVector, n, m);
         snpComputeNetGain(n, m, stateVector, lossVector, gainVector, netGainVector);
         vectorAdd(netGainVector,configVector,configVector);
         snpPostCompute(n, m, rules, transitionVector);
         snpReset(n, m, lossVector, gainVector, netGainVector,neuronFlags);
-        end = std::chrono::high_resolution_clock::now();
-        runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
         *outputStream << "CHOSEN RULES" << std::endl;
         for(size_t j = 0; j < n; j++){
@@ -96,6 +93,8 @@ int SNPEmulator::execute(stringstream *outputStream){
 }
 
 void SNPEmulator::initCL(){
+
+    runtime = chrono::microseconds(0);
 
     ifstream file(SNP_CL_SOURCE);
     string source((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
@@ -212,6 +211,8 @@ void SNPEmulator::vectorAdd(vector<float> &vectorA, vector<float> &vectorB, vect
             deviceVectorB.begin(),
             queue
             );
+    
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
 
     compute::transform(
             deviceVectorA.begin(),
@@ -220,7 +221,11 @@ void SNPEmulator::vectorAdd(vector<float> &vectorA, vector<float> &vectorB, vect
             deviceVectorC.begin(),
             compute::plus<float>(),
             queue
-            );
+            ); 
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+
+
 
     compute::copy(
             deviceVectorC.begin(),
@@ -250,9 +255,15 @@ void SNPEmulator::vectorSelectiveAdd(std::vector<float> &vectorA, std::vector<fl
     vectorSelectiveAddKernel.set_arg(1, deviceOutputVector);
     vectorSelectiveAddKernel.set_arg(2, sizeof(int), (int *)&rows);
     vectorSelectiveAddKernel.set_arg(3, sizeof(int), (int *)&cols);
+ 
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
 
     queue.enqueue_1d_range_kernel(vectorSelectiveAddKernel,0,globalSize,localSize);
     queue.finish();
+
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+
 
     compute::copy(
             deviceOutputVector.begin(),
@@ -296,8 +307,13 @@ void SNPEmulator::snpComputeNetGain(size_t n, size_t m, vector<float> &stateVect
     snpComputeNetGainKernel.set_arg(4,deviceGainVector);
     snpComputeNetGainKernel.set_arg(5,deviceNetGainVector);
 
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+
     queue.enqueue_1d_range_kernel(snpComputeNetGainKernel,0,globalSize,1);
     queue.finish();
+
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
     compute::copy(
             deviceNetGainVector.begin(),
@@ -333,8 +349,14 @@ void SNPEmulator::snpPostCompute(size_t n, size_t m,  vector<float> &rules, vect
     snpPostComputeKernel.set_arg(3,deviceTransitionVector);
     snpPostComputeKernel.set_arg(4,compute::local_buffer<float>(n));
 
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+
+
     queue.enqueue_1d_range_kernel(snpPostComputeKernel,0,globalSize,localSize);
     queue.finish();
+
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
     compute::copy(
             deviceRules.begin(),
@@ -364,8 +386,15 @@ void SNPEmulator::snpReset(size_t n, size_t m,  vector<float> &lossVector, vecto
     snpResetKernel.set_arg(4,deviceNetGainVector);
     snpResetKernel.set_arg(5,deviceNeuronFlags);
 
+
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+
     queue.enqueue_1d_range_kernel(snpResetKernel,0,globalSize,1);
     queue.finish();
+
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+
 
     compute::copy(
             deviceLossVector.begin(),
@@ -462,7 +491,13 @@ void SNPEmulator::snpSetStates(size_t n, size_t m,  vector<float> &configVector,
     snpSetStatesKernel.set_arg(7,deviceStateVector);
     snpSetStatesKernel.set_arg(8,deviceTransitionVector);
 
+    chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+
     queue.enqueue_1d_range_kernel(snpSetStatesKernel, 0, globalSize, 1);
+    queue.finish();
+
+    chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    runtime += std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 
     compute::copy(
             deviceConfigVector.begin(),

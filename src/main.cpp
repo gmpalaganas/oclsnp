@@ -35,12 +35,12 @@ int main(int argc, char **argv){
     double vm;
     double rss;
 
-    outputStream << "Execution time: " << emulator.getRuntime() << " ns" << std::endl;
+    outputStream << "Execution time: " << emulator.getRuntime() << " ms" << std::endl;
     
     if(std::find(flags.begin(), flags.end(), programFlags::ProgramFlags::SILENT) == flags.end()){
         std::cout << outputStream.str();
     }else{
-        std::cout << "Execution time: " << emulator.getRuntime() << " ns" << std::endl;
+        std::cout << "Execution time: " << emulator.getRuntime() << " ms" << std::endl;
     }
 
     if(outputFile){
